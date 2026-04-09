@@ -96,7 +96,7 @@ export default function App() {
             animate={{ scale: 1, opacity: 1 }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            href="https://wa.me/6281234567890?text=Halo! Saya akan hadir di acara tasyakuran khitan Abidzar."
+            href="https://wa.me/6281234567890?text=Halo! Saya akan hadir di acara tasyakuran khitan Keyanu Azzam."
             target="_blank"
             rel="noopener noreferrer"
             className="fixed bottom-24 left-6 z-50 w-12 h-12 rounded-full flex items-center justify-center bg-green-500 text-white shadow-lg shadow-green-500/20"

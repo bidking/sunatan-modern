@@ -38,9 +38,9 @@ export const Profile: React.FC = () => {
             <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-neon-cyan to-transparent mb-6"></div>
             
             <div className="space-y-2">
-              <h3 className="text-neon-yellow font-heading text-xl">Abidzar Dante Alfaresi</h3>
+              <h3 className="text-neon-yellow font-heading text-xl">Keyanu Azzam Azahab</h3>
               <p className="text-white/70">Putra dari:</p>
-              <p className="text-white font-medium text-lg">Bapak Fulan & Ibu Fulanah</p>
+              <p className="text-white font-medium text-lg">Bapak Asep Dani & Ibu Carolina Ari Suminar</p>
             </div>
           </div>
         </motion.div>

@@ -20,7 +20,7 @@ export const Footer: React.FC = () => {
           
           <div className="flex flex-col items-center gap-4">
             <p className="text-white/50 text-sm">Kami yang berbahagia,</p>
-            <p className="text-white font-heading text-xl">Kel. Bapak Fulan & Ibu Fulanah</p>
+            <p className="text-white font-heading text-xl text-center">Kel. Bapak Asep Dani & Ibu Carolina Ari Suminar</p>
           </div>
 
           <div className="mt-20 flex flex-col items-center gap-2">

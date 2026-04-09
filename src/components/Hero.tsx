@@ -47,9 +47,9 @@ export const Hero: React.FC<HeroProps> = ({ guestName }) => {
         </div>
 
         <h1 className="text-white font-heading text-5xl md:text-8xl mb-4 leading-tight">
-          ABIDZAR <br />
-          <span className="text-neon-yellow neon-glow-yellow">DANTE</span> <br />
-          ALFARESI
+          KEYANU <br />
+          <span className="text-neon-yellow neon-glow-yellow">AZZAM</span> <br />
+          AZAHAB
         </h1>
 
         <div className="flex items-center justify-center gap-4 mb-8">

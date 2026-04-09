@@ -5,7 +5,7 @@ import { Countdown } from './Countdown';
 import { Button } from './ui/button';
 
 export const EventDetails: React.FC = () => {
-  const eventDate = new Date('2024-12-24T10:00:00');
+  const eventDate = new Date('2026-06-06T10:00:00');
 
   return (
     <section id="event" className="py-20 px-6 relative">
@@ -45,14 +45,14 @@ export const EventDetails: React.FC = () => {
               <div className="flex items-start gap-3">
                 <Calendar className="w-5 h-5 text-neon-pink mt-1 shrink-0" />
                 <div>
-                  <p className="text-white font-medium text-lg">Sabtu, 24 Desember 2024</p>
+                  <p className="text-white font-medium text-lg">Sabtu, 06 Juni 2026</p>
                   <p className="text-white/60 text-sm">Save the date on your calendar</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Clock className="w-5 h-5 text-neon-pink mt-1 shrink-0" />
                 <div>
-                  <p className="text-white font-medium text-lg">10.00 – 13.00 WIB</p>
+                  <p className="text-white font-medium text-lg">10.00 – Selesai</p>
                   <p className="text-white/60 text-sm">Don't be late for the quest!</p>
                 </div>
               </div>
@@ -81,15 +81,15 @@ export const EventDetails: React.FC = () => {
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-neon-cyan mt-1 shrink-0" />
                 <div>
-                  <p className="text-white font-medium text-lg">Komplek INALUM Tanjung Gading</p>
-                  <p className="text-white/60 text-sm">Batu Bara, Sumatera Utara</p>
+                  <p className="text-white font-medium text-lg">Kediaman Kami (Rumah)</p>
+                  <p className="text-white/60 text-sm">Klik tombol di bawah untuk navigasi</p>
                 </div>
               </div>
               
               <Button 
                 variant="outline" 
                 className="w-full mt-4 border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-gaming-dark font-heading"
-                onClick={() => window.open('https://maps.google.com/?q=Komplek+INALUM+Tanjung+Gading', '_blank')}
+                onClick={() => window.open('https://www.google.com/maps/search/?api=1&query=-6.4822237,106.8679418', '_blank')}
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
                 LIHAT MAPS
@@ -106,7 +106,7 @@ export const EventDetails: React.FC = () => {
           className="mt-12 rounded-3xl overflow-hidden border border-white/10 h-80 relative"
         >
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3984.6!2d99.3!3d3.3!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zM8KwMTgnMDAuMCJOIDk5wrAxOCcwMC4wIkU!5e0!3m2!1sen!2sid!4v1234567890"
+            src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d3965.2!2d106.8679418!3d-6.4822237!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sid!4v1234567890"
             width="100%"
             height="100%"
             style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg) brightness(0.8)' }}
