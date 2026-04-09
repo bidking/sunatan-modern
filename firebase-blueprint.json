@@ -1,0 +1,24 @@
+{
+  "entities": {
+    "RSVP": {
+      "title": "RSVP",
+      "description": "Guest RSVP and comments",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Guest name" },
+        "attendance": { "type": "string", "enum": ["present", "absent"], "description": "Attendance status" },
+        "message": { "type": "string", "description": "Guest message" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "When the RSVP was submitted" },
+        "likes": { "type": "number", "description": "Number of likes" },
+        "likedBy": { "type": "array", "items": { "type": "string" }, "description": "User IDs who liked this comment" }
+      },
+      "required": ["name", "attendance", "message", "timestamp", "likes", "likedBy"]
+    }
+  },
+  "firestore": {
+    "/rsvps/{rsvpId}": {
+      "schema": "RSVP",
+      "description": "Collection of guest RSVPs"
+    }
+  }
+}
