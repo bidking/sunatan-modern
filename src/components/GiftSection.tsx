@@ -1,21 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Gift, Copy, Check, CreditCard } from 'lucide-react';
+import { Gift, Copy, Check, CreditCard, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 export const GiftSection: React.FC = () => {
   const [copied, setCopied] = useState<string | null>(null);
+  const [settings, setSettings] = useState<any>(null);
 
-  const accounts = [
-    { bank: 'BANK MANDIRI', number: '1234567890', name: 'Bapak Fulan' },
-    { bank: 'BANK BRI', number: '0987654321', name: 'Ibu Fulanah' },
-  ];
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'global'), (doc) => {
+      if (doc.exists()) {
+        setSettings(doc.data());
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const accounts = settings?.gifts || [];
 
   const handleCopy = (num: string) => {
     navigator.clipboard.writeText(num);
     setCopied(num);
     setTimeout(() => setCopied(null), 2000);
   };
+
+  if (accounts.length === 0 && !settings) return null;
+  if (accounts.length === 0) return null;
 
   return (
     <section id="gift" className="py-20 px-6">
@@ -38,7 +50,7 @@ export const GiftSection: React.FC = () => {
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {accounts.map((acc, index) => (
+          {accounts.map((acc: any, index: number) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -48,21 +60,25 @@ export const GiftSection: React.FC = () => {
               className="glass p-8 rounded-3xl border-neon-yellow/20 relative overflow-hidden group"
             >
               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <CreditCard className="w-20 h-20 text-white" />
+                {acc.type === 'ewallet' ? (
+                  <Wallet className="w-20 h-20 text-white" />
+                ) : (
+                  <CreditCard className="w-20 h-20 text-white" />
+                )}
               </div>
               
-              <h3 className="text-neon-yellow font-heading text-lg mb-4">{acc.bank}</h3>
+              <h3 className="text-neon-yellow font-heading text-lg mb-4 uppercase tracking-wider">{acc.bankName}</h3>
               <div className="space-y-1 mb-6">
-                <p className="text-white font-heading text-2xl tracking-wider">{acc.number}</p>
-                <p className="text-white/60 text-sm italic">a.n {acc.name}</p>
+                <p className="text-white font-heading text-2xl tracking-wider">{acc.accountNumber}</p>
+                <p className="text-white/60 text-sm italic">a.n {acc.accountHolder}</p>
               </div>
 
               <Button
                 variant="outline"
                 className="w-full border-neon-yellow/50 text-neon-yellow hover:bg-neon-yellow hover:text-gaming-dark font-heading"
-                onClick={() => handleCopy(acc.number)}
+                onClick={() => handleCopy(acc.accountNumber)}
               >
-                {copied === acc.number ? (
+                {copied === acc.accountNumber ? (
                   <>
                     <Check className="w-4 h-4 mr-2" />
                     COPIED

@@ -17,17 +17,12 @@ export const Gallery: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  const images = settings?.gallery || [
-    'https://picsum.photos/seed/khitan1/800/1000',
-    'https://picsum.photos/seed/khitan2/1000/800',
-    'https://picsum.photos/seed/khitan3/800/800',
-    'https://picsum.photos/seed/khitan4/800/1200',
-    'https://picsum.photos/seed/khitan5/1200/800',
-    'https://picsum.photos/seed/khitan6/800/1000',
-  ];
+  const images = (settings?.gallery || []).filter((url: string) => url && url.trim() !== '');
 
-  const childName = settings?.childName || 'Keyanu Azzam';
-  const firstName = childName.split(' ')[0];
+  const childName = settings?.childName || '';
+  const firstName = childName ? childName.split(' ')[0] : 'Putra Kami';
+
+  if (images.length === 0 && !settings) return null;
 
   return (
     <section id="gallery" className="py-20 px-6">

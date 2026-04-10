@@ -15,10 +15,12 @@ export const Profile: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  const childName = settings?.childName || 'Keyanu Azzam Azahab';
-  const fatherName = settings?.fatherName || 'Bapak Asep Dani';
-  const motherName = settings?.motherName || 'Ibu Carolina Ari Suminar';
+  const childName = settings?.childName || '';
+  const fatherName = settings?.fatherName ? `Bpk. ${settings.fatherName}` : '';
+  const motherName = settings?.motherName ? `Ibu ${settings.motherName}` : '';
   const profileImage = settings?.profileImage || 'https://picsum.photos/seed/boy/400/400';
+
+  if (!childName && !settings) return null;
 
   return (
     <section id="profile" className="py-20 px-6 relative overflow-hidden">
@@ -57,8 +59,10 @@ export const Profile: React.FC = () => {
             
             <div className="space-y-2">
               <h3 className="text-neon-yellow font-heading text-xl">{childName}</h3>
-              <p className="text-white/70">Putra dari:</p>
-              <p className="text-white font-medium text-lg">{fatherName} & {motherName}</p>
+              <p className="text-white/70 text-sm">Putra dari:</p>
+              <p className="text-white font-medium text-lg">
+                {fatherName} & {motherName}
+              </p>
             </div>
           </div>
         </motion.div>

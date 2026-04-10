@@ -67,8 +67,8 @@ export const OpeningScreen: React.FC<OpeningScreenProps> = ({ onOpen, guestName 
           TASYAKURAN KHITAN
         </h1>
 
-        <div className="glass p-6 rounded-2xl mb-8 border-neon-cyan/30">
-          <p className="text-white/70 text-sm mb-2">Kepada Yth:</p>
+        <div className="glass p-6 rounded-2xl mb-8 border-neon-cyan/30 min-w-[280px]">
+          <p className="text-white/70 text-sm mb-2 uppercase tracking-widest">Kepada Yth:</p>
           <h3 className="text-white font-heading text-2xl mb-1">{guestName || 'Tamu Undangan'}</h3>
           <p className="text-white/50 text-xs italic">Di Tempat</p>
         </div>

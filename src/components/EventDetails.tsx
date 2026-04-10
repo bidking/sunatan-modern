@@ -24,29 +24,32 @@ export const EventDetails: React.FC = () => {
   const displayAddress = settings?.address || 'Jl. Lanbau, Karang Asem Bar., Kec. Citeureup, Kabupaten Bogor, Jawa Barat, Indonesia';
   const mapUrl = settings?.mapUrl || 'https://www.google.com/maps/search/?api=1&query=-6.4822237,106.8679418';
   
-  // Improved embed logic
-  const getEmbedUrl = (url: string) => {
+  // Use manual Coordinates if provided
+  const getEmbedUrl = () => {
+    if (settings?.coordinates) {
+      // Clean the coordinates string (handle if user uses comma as decimal)
+      // Example: "-6,48233, 106,86785" -> "-6.48233, 106.86785"
+      const cleanCoords = settings.coordinates.replace(/(\d+),(\d+)/g, '$1.$2');
+      const parts = cleanCoords.split(',').map((p: string) => p.trim());
+      
+      if (parts.length >= 2) {
+        return `https://maps.google.com/maps?q=${parts[0]},${parts[1]}&hl=id&z=15&output=embed`;
+      }
+    }
+    
+    const url = settings?.mapUrl;
     if (!url) return "https://maps.google.com/maps?q=-6.4822237,106.8679418&hl=id&z=15&output=embed";
     
-    // If it's already an embed URL
+    // Fallback logic for old URL formats
     if (url.includes('output=embed')) return url;
-    
-    // Try to extract coordinates from standard Google Maps URL
     const coordMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
     if (coordMatch) {
       return `https://maps.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&hl=id&z=15&output=embed`;
     }
-    
-    // Try to extract from query param
-    if (url.includes('query=')) {
-      return `https://maps.google.com/maps?q=${url.split('query=')[1]}&hl=id&z=15&output=embed`;
-    }
-
-    // Fallback: use the URL as a search query in embed
     return `https://maps.google.com/maps?q=${encodeURIComponent(url)}&hl=id&z=15&output=embed`;
   };
 
-  const embedMapUrl = getEmbedUrl(settings?.mapUrl);
+  const embedMapUrl = getEmbedUrl();
 
   return (
     <section id="event" className="py-20 px-6 relative">

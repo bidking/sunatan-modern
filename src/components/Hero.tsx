@@ -20,8 +20,10 @@ export const Hero: React.FC<HeroProps> = ({ guestName }) => {
     return () => unsubscribe();
   }, []);
 
-  const childName = settings?.childName || 'KEYANU AZZAM AZAHAB';
+  const childName = settings?.childName || '';
   const heroImage = settings?.heroImage || 'https://picsum.photos/seed/gaming/1920/1080';
+
+  if (!childName && !settings) return null;
 
   // Split name for styling
   const nameParts = childName.split(' ');

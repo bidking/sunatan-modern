@@ -19,6 +19,8 @@ import { FloatingNav } from './components/FloatingNav';
 import { BackgroundElements } from './components/BackgroundElements';
 import { LoadingScreen } from './components/LoadingScreen';
 import { AdminDashboard } from './components/AdminDashboard';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from './lib/firebase';
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -27,11 +29,39 @@ export default function App() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [isAdminPath, setIsAdminPath] = useState(false);
+  const [settings, setSettings] = useState<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     // Check if we are on admin path
     setIsAdminPath(window.location.pathname === '/admin');
+
+    // Subscribe to settings for music and other global data
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'global'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setSettings(data);
+        
+        // Update Page Title
+        if (data.ogTitle) {
+          document.title = data.ogTitle;
+        }
+        
+        // Update Favicon
+        if (data.faviconUrl) {
+          const link = document.getElementById('favicon') as HTMLLinkElement;
+          if (link) {
+            link.href = data.faviconUrl;
+          } else {
+            const newLink = document.createElement('link');
+            newLink.id = 'favicon';
+            newLink.rel = 'icon';
+            newLink.href = data.faviconUrl;
+            document.head.appendChild(newLink);
+          }
+        }
+      }
+    });
 
     // Simulate initial loading
     const timer = setTimeout(() => {
@@ -42,12 +72,10 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const to = params.get('to');
     if (to) {
-      // Convert slug back to name (e.g., pak-andra -> Pak Andra)
       const formattedName = to.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
       setGuestName(formattedName);
     }
 
-    // Scroll listener for scroll-to-top button
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 500);
     };
@@ -55,6 +83,7 @@ export default function App() {
     return () => {
       window.removeEventListener('scroll', handleScroll);
       clearTimeout(timer);
+      unsubscribe();
     };
   }, []);
 
@@ -81,6 +110,9 @@ export default function App() {
     return <AdminDashboard />;
   }
 
+  // Default music if none is set
+  const musicSrc = settings?.musicUrl || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+
   return (
     <div className="relative min-h-screen bg-gaming-dark text-white selection:bg-neon-yellow selection:text-gaming-dark">
       <AnimatePresence mode="wait">
@@ -92,7 +124,7 @@ export default function App() {
       
       <audio 
         ref={audioRef} 
-        src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" 
+        src={musicSrc} 
         loop 
       />
 
@@ -125,7 +157,7 @@ export default function App() {
             animate={{ scale: 1, opacity: 1 }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            href="https://wa.me/6281234567890?text=Halo! Saya akan hadir di acara tasyakuran khitan Keyanu Azzam."
+            href="https://wa.me/6281234567890?text=Halo! Saya akan hadir di acara tasyakuran khitan."
             target="_blank"
             rel="noopener noreferrer"
             className="fixed bottom-44 left-6 z-50 w-12 h-12 rounded-full flex items-center justify-center bg-green-500 text-white shadow-lg shadow-green-500/20"
@@ -154,4 +186,3 @@ export default function App() {
     </div>
   );
 }
-
