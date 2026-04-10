@@ -48,7 +48,7 @@ export const AdminDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
-  const ADMIN_EMAIL = "estaaliansyah@gmail.com";
+  const ADMIN_EMAIL = "estabantu5@gmail.com";
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
