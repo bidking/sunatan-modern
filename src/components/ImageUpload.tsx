@@ -12,14 +12,17 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <label className="block text-[10px] text-white/40 uppercase">{label}</label>
-        <a 
-          href="https://postimages.org/" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-[10px] text-neon-cyan hover:underline flex items-center gap-1"
-        >
-          Upload Gratis <ExternalLink className="w-2 h-2" />
-        </a>
+        <div className="flex gap-3">
+          <span className="text-[10px] text-white/20 italic">Server Alibaba Aktif</span>
+          <a 
+            href="https://postimages.org/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-[10px] text-neon-cyan hover:underline flex items-center gap-1"
+          >
+            Upload Gratis <ExternalLink className="w-2 h-2" />
+          </a>
+        </div>
       </div>
 
       <div className="relative">
@@ -31,7 +34,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 focus:border-neon-cyan outline-none text-sm"
-          placeholder="Paste link gambar di sini..."
+          placeholder="https://justbluenyellow.my.id/galeri/nama_foto.jpg"
         />
       </div>
       
@@ -49,7 +52,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label
         </div>
       )}
       <p className="text-[9px] text-white/30 italic">
-        *Gunakan link langsung (akhiran .jpg, .png, atau .webp)
+        *Contoh link server Anda: https://justbluenyellow.my.id/galeri/foto.jpg
       </p>
     </div>
   );

@@ -481,6 +481,7 @@ export const AdminDashboard: React.FC = () => {
                         value={settings.childName}
                         onChange={(e) => setSettings({...settings, childName: e.target.value})}
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none"
+                        placeholder="Keyanu Azzam Azahab"
                       />
                     </div>
                     <div>
@@ -490,6 +491,7 @@ export const AdminDashboard: React.FC = () => {
                         value={settings.fatherName}
                         onChange={(e) => setSettings({...settings, fatherName: e.target.value})}
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none"
+                        placeholder="Bapak Asep Dani"
                       />
                     </div>
                     <div>
@@ -499,6 +501,7 @@ export const AdminDashboard: React.FC = () => {
                         value={settings.motherName}
                         onChange={(e) => setSettings({...settings, motherName: e.target.value})}
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none"
+                        placeholder="Ibu Carolina Ari Suminar"
                       />
                     </div>
                   </div>
@@ -518,12 +521,23 @@ export const AdminDashboard: React.FC = () => {
                       />
                     </div>
                     <div>
+                      <label className="block text-[10px] text-white/40 uppercase mb-1">Waktu Acara</label>
+                      <input
+                        type="text"
+                        value={settings.eventTime}
+                        onChange={(e) => setSettings({...settings, eventTime: e.target.value})}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none"
+                        placeholder="10.00 – Selesai"
+                      />
+                    </div>
+                    <div>
                       <label className="block text-[10px] text-white/40 uppercase mb-1">Alamat Lengkap</label>
                       <textarea
                         value={settings.address}
                         onChange={(e) => setSettings({...settings, address: e.target.value})}
                         rows={3}
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none resize-none"
+                        placeholder="Jl. Lanbau, Karang Asem Bar., Kec. Citeureup..."
                       />
                     </div>
                     <div>
@@ -533,6 +547,7 @@ export const AdminDashboard: React.FC = () => {
                         value={settings.mapUrl}
                         onChange={(e) => setSettings({...settings, mapUrl: e.target.value})}
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none"
+                        placeholder="https://goo.gl/maps/..."
                       />
                     </div>
                   </div>

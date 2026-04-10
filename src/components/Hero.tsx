@@ -23,11 +23,22 @@ export const Hero: React.FC<HeroProps> = ({ guestName }) => {
   const childName = settings?.childName || 'KEYANU AZZAM AZAHAB';
   const heroImage = settings?.heroImage || 'https://picsum.photos/seed/gaming/1920/1080';
 
-  // Split name for styling if it matches default or has spaces
+  // Split name for styling
   const nameParts = childName.split(' ');
-  const firstName = nameParts[0] || 'KEYANU';
-  const middleName = nameParts[1] || 'AZZAM';
-  const lastName = nameParts.slice(2).join(' ') || 'AZAHAB';
+  let firstName = '';
+  let middleName = '';
+  let lastName = '';
+
+  if (nameParts.length === 1) {
+    firstName = nameParts[0];
+  } else if (nameParts.length === 2) {
+    firstName = nameParts[0];
+    middleName = nameParts[1];
+  } else {
+    firstName = nameParts[0];
+    middleName = nameParts[1];
+    lastName = nameParts.slice(2).join(' ');
+  }
 
   return (
     <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center pt-20 pb-10 px-6 overflow-hidden">
