@@ -111,13 +111,13 @@ export const AdminDashboard: React.FC = () => {
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
 
-  const ADMIN_EMAIL = "estabantu5@gmail.com";
+  const ADMIN_EMAILS = ["estabantu5@gmail.com", "estaaliansyah@gmail.com"];
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
-      if (currentUser && currentUser.email === ADMIN_EMAIL) {
+      if (currentUser && ADMIN_EMAILS.includes(currentUser.email || '')) {
         fetchGuests();
         fetchRSVPs();
         fetchSettings();
@@ -156,7 +156,11 @@ export const AdminDashboard: React.FC = () => {
       const docRef = doc(db, 'settings', 'global');
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        setSettings(docSnap.data() as GlobalSettings);
+        const data = docSnap.data() as GlobalSettings;
+        // Ensure gallery has 10 elements
+        const gallery = [...(data.gallery || [])];
+        while (gallery.length < 10) gallery.push('');
+        setSettings({ ...data, gallery });
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
@@ -259,12 +263,16 @@ export const AdminDashboard: React.FC = () => {
 
   const removeGalleryImage = (index: number) => {
     const newGallery = [...settings.gallery];
-    newGallery.splice(index, 1);
+    // Ensure array has 10 elements
+    while (newGallery.length < 10) newGallery.push('');
+    newGallery[index] = '';
     setSettings({ ...settings, gallery: newGallery });
   };
 
   const updateGalleryImage = (index: number, url: string) => {
     const newGallery = [...settings.gallery];
+    // Ensure array has 10 elements
+    while (newGallery.length < 10) newGallery.push('');
     newGallery[index] = url;
     setSettings({ ...settings, gallery: newGallery });
   };
@@ -281,7 +289,7 @@ export const AdminDashboard: React.FC = () => {
     );
   }
 
-  if (!user || user.email !== ADMIN_EMAIL) {
+  if (!user || !ADMIN_EMAILS.includes(user.email || '')) {
     return (
       <div className="min-h-screen bg-gaming-dark flex items-center justify-center px-6">
         <div className="glass p-8 rounded-2xl border-white/10 max-w-md w-full text-center">
@@ -573,43 +581,59 @@ export const AdminDashboard: React.FC = () => {
 
                   {/* Galeri Foto */}
                   <div className="md:col-span-2 space-y-4 pt-4 border-t border-white/5">
-                    <h3 className="text-sm font-heading text-neon-cyan flex items-center gap-2">
-                      <ImageIcon className="w-4 h-4" /> Galeri Foto (Maks 10)
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {settings.gallery.map((url, index) => (
-                        <div key={index} className="glass p-3 rounded-xl border-white/10 relative group">
-                          <ImageUpload
-                            label={`Foto ${index + 1}`}
-                            value={url}
-                            onChange={(newUrl) => updateGalleryImage(index, newUrl)}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeGalleryImage(index)}
-                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-20"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                      {settings.gallery.length < 10 && (
-                        <div className="glass p-4 rounded-xl border-dashed border-white/20 flex flex-col gap-3 min-h-[150px]">
-                          <ImageUpload
-                            label="Tambah Foto Baru"
-                            value={newGalleryUrl}
-                            onChange={(url) => setNewGalleryUrl(url)}
-                          />
-                          <button
-                            type="button"
-                            onClick={addGalleryImage}
-                            disabled={!newGalleryUrl}
-                            className="w-full py-2 bg-neon-cyan text-gaming-dark text-xs font-heading rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                          >
-                            <Plus className="w-4 h-4" /> Konfirmasi Tambah
-                          </button>
-                        </div>
-                      )}
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-heading text-neon-cyan flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4" /> Galeri Foto (10 Slot)
+                      </h3>
+                      <span className="text-[10px] text-white/40 italic">
+                        *Upload foto ke server Alibaba Anda via FileZilla, lalu tempel link-nya di slot.
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                      {Array.from({ length: 10 }).map((_, index) => {
+                        const url = settings.gallery[index] || '';
+                        return (
+                          <div key={index} className="glass p-2 rounded-xl border-white/10 flex flex-col gap-2 group">
+                            <div className="aspect-square rounded-lg overflow-hidden bg-white/5 border border-white/5 relative">
+                              {url ? (
+                                <>
+                                  <img 
+                                    src={url} 
+                                    alt={`Slot ${index + 1}`} 
+                                    className="w-full h-full object-cover"
+                                    referrerPolicy="no-referrer"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Error';
+                                    }}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeGalleryImage(index)}
+                                    className="absolute top-1 right-1 p-1 bg-red-500/80 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </>
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-white/10">
+                                  <ImageIcon className="w-6 h-6" />
+                                </div>
+                              )}
+                              <div className="absolute bottom-0 left-0 right-0 bg-gaming-dark/80 py-1 px-2 text-[8px] font-heading text-center">
+                                SLOT {index + 1}
+                              </div>
+                            </div>
+                            <input
+                              type="text"
+                              value={url}
+                              onChange={(e) => updateGalleryImage(index, e.target.value)}
+                              placeholder="https://..."
+                              className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] focus:border-neon-cyan outline-none"
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

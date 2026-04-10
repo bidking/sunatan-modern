@@ -31,7 +31,8 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && 
-             (request.auth.token.email == "estabantu5@gmail.com" && request.auth.token.email_verified == true);
+             ((request.auth.token.email == "estabantu5@gmail.com" || request.auth.token.email == "estaaliansyah@gmail.com") && 
+              request.auth.token.email_verified == true);
     }
 
     function isValidRSVP(data) {
@@ -52,17 +53,17 @@ service cloud.firestore {
     }
 
     function isValidSettings(data) {
-      return data.keys().hasAll(['childName', 'fatherName', 'motherName', 'eventDate', 'address', 'gallery']) &&
-             data.childName is string && data.childName.size() <= 200 &&
-             data.fatherName is string && data.fatherName.size() <= 200 &&
-             data.motherName is string && data.motherName.size() <= 200 &&
-             data.eventDate is string &&
-             data.address is string && data.address.size() <= 1000 &&
-             data.gallery is list && data.gallery.size() <= 10 &&
+      // Allow any fields as long as types are correct if present
+      return (!('childName' in data) || data.childName is string) &&
+             (!('fatherName' in data) || data.fatherName is string) &&
+             (!('motherName' in data) || data.motherName is string) &&
+             (!('eventDate' in data) || data.eventDate is string) &&
              (!('eventTime' in data) || data.eventTime is string) &&
+             (!('address' in data) || data.address is string) &&
              (!('mapUrl' in data) || data.mapUrl is string) &&
              (!('heroImage' in data) || data.heroImage is string) &&
-             (!('profileImage' in data) || data.profileImage is string);
+             (!('profileImage' in data) || data.profileImage is string) &&
+             (!('gallery' in data) || (data.gallery is list && data.gallery.size() <= 10));
     }
 
     match /rsvps/{rsvpId} {
