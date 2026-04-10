@@ -24,6 +24,24 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "When the guest was added" }
       },
       "required": ["name", "slug", "createdAt"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global invitation settings",
+      "type": "object",
+      "properties": {
+        "childName": { "type": "string" },
+        "fatherName": { "type": "string" },
+        "motherName": { "type": "string" },
+        "eventDate": { "type": "string" },
+        "eventTime": { "type": "string" },
+        "address": { "type": "string" },
+        "mapUrl": { "type": "string" },
+        "coordinates": { "type": "object", "properties": { "lat": { "type": "number" }, "lng": { "type": "number" } } },
+        "heroImage": { "type": "string" },
+        "profileImage": { "type": "string" }
+      },
+      "required": ["childName", "fatherName", "motherName", "eventDate", "address"]
     }
   },
   "firestore": {
@@ -34,6 +52,10 @@
     "/guests/{guestId}": {
       "schema": "Guest",
       "description": "Collection of guests for personalized links"
+    },
+    "/settings/global": {
+      "schema": "Settings",
+      "description": "Global configuration for the invitation"
     }
   }
 }

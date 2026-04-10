@@ -51,6 +51,15 @@ service cloud.firestore {
              data.createdAt is timestamp;
     }
 
+    function isValidSettings(data) {
+      return data.keys().hasAll(['childName', 'fatherName', 'motherName', 'eventDate', 'address']) &&
+             data.childName is string &&
+             data.fatherName is string &&
+             data.motherName is string &&
+             data.eventDate is string &&
+             data.address is string;
+    }
+
     match /rsvps/{rsvpId} {
       // Publicly readable for the invitation
       allow read: if true;
@@ -65,13 +74,20 @@ service cloud.firestore {
                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) &&
                       math.abs(request.resource.data.likes - resource.data.likes) == 1;
       
-      // Admin can delete
+      // Admin can delete RSVPs
       allow delete: if isAdmin();
     }
 
     match /guests/{guestId} {
       // Only admin can manage guests
       allow read, write: if isAdmin() && (request.method != 'create' || isValidGuest(request.resource.data)) && (request.method != 'update' || isValidGuest(request.resource.data));
+    }
+
+    match /settings/{docId} {
+      // Settings are publicly readable
+      allow read: if true;
+      // Only admin can update settings
+      allow write: if isAdmin() && (request.method != 'create' || isValidSettings(request.resource.data)) && (request.method != 'update' || isValidSettings(request.resource.data));
     }
   }
 }

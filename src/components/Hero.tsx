@@ -1,14 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Gamepad2, ChevronDown } from 'lucide-react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface HeroProps {
   guestName: string;
 }
 
 export const Hero: React.FC<HeroProps> = ({ guestName }) => {
+  const [settings, setSettings] = useState<any>(null);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'global'), (doc) => {
+      if (doc.exists()) {
+        setSettings(doc.data());
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const childName = settings?.childName || 'KEYANU AZZAM AZAHAB';
+  const heroImage = settings?.heroImage || 'https://picsum.photos/seed/gaming/1920/1080';
+
+  // Split name for styling if it matches default or has spaces
+  const nameParts = childName.split(' ');
+  const firstName = nameParts[0] || 'KEYANU';
+  const middleName = nameParts[1] || 'AZZAM';
+  const lastName = nameParts.slice(2).join(' ') || 'AZAHAB';
+
   return (
     <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center pt-20 pb-10 px-6 overflow-hidden">
+      {settings?.heroImage && (
+        <div className="absolute inset-0 z-0 opacity-20">
+          <img src={heroImage} className="w-full h-full object-cover" alt="Background" referrerPolicy="no-referrer" />
+          <div className="absolute inset-0 bg-gradient-to-b from-gaming-dark via-transparent to-gaming-dark"></div>
+        </div>
+      )}
+      
       <motion.div
         initial={{ y: 50, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
@@ -20,10 +49,10 @@ export const Hero: React.FC<HeroProps> = ({ guestName }) => {
           New Quest Unlocked
         </div>
 
-        <h1 className="text-white font-heading text-5xl md:text-8xl mb-4 leading-tight">
-          KEYANU <br />
-          <span className="text-neon-yellow neon-glow-yellow">AZZAM</span> <br />
-          AZAHAB
+        <h1 className="text-white font-heading text-5xl md:text-8xl mb-4 leading-tight uppercase">
+          {firstName} <br />
+          <span className="text-neon-yellow neon-glow-yellow">{middleName}</span> <br />
+          {lastName}
         </h1>
 
         <div className="flex items-center justify-center gap-4 mb-8">

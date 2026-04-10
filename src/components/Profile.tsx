@@ -1,7 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 export const Profile: React.FC = () => {
+  const [settings, setSettings] = useState<any>(null);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'global'), (doc) => {
+      if (doc.exists()) {
+        setSettings(doc.data());
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const childName = settings?.childName || 'Keyanu Azzam Azahab';
+  const fatherName = settings?.fatherName || 'Bapak Asep Dani';
+  const motherName = settings?.motherName || 'Ibu Carolina Ari Suminar';
+  const profileImage = settings?.profileImage || 'https://picsum.photos/seed/boy/400/400';
+
   return (
     <section id="profile" className="py-20 px-6 relative overflow-hidden">
       <div className="max-w-4xl mx-auto">
@@ -15,8 +33,8 @@ export const Profile: React.FC = () => {
           <div className="relative inline-block mb-10">
             <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-neon-yellow p-2 bg-gaming-dark relative z-10">
               <img 
-                src="https://picsum.photos/seed/boy/400/400" 
-                alt="Abidzar Dante Alfaresi" 
+                src={profileImage} 
+                alt={childName} 
                 className="w-full h-full object-cover rounded-full"
                 referrerPolicy="no-referrer"
               />
@@ -38,9 +56,9 @@ export const Profile: React.FC = () => {
             <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-neon-cyan to-transparent mb-6"></div>
             
             <div className="space-y-2">
-              <h3 className="text-neon-yellow font-heading text-xl">Keyanu Azzam Azahab</h3>
+              <h3 className="text-neon-yellow font-heading text-xl">{childName}</h3>
               <p className="text-white/70">Putra dari:</p>
-              <p className="text-white font-medium text-lg">Bapak Asep Dani & Ibu Carolina Ari Suminar</p>
+              <p className="text-white font-medium text-lg">{fatherName} & {motherName}</p>
             </div>
           </div>
         </motion.div>

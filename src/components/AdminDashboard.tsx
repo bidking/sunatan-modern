@@ -10,7 +10,14 @@ import {
   Search,
   CheckCircle2,
   AlertCircle,
-  Loader2
+  Loader2,
+  Settings as SettingsIcon,
+  MessageSquare,
+  Save,
+  MapPin,
+  Image as ImageIcon,
+  Calendar as CalendarIcon,
+  User as UserIcon
 } from 'lucide-react';
 import { 
   collection, 
@@ -21,7 +28,10 @@ import {
   query, 
   orderBy, 
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  setDoc,
+  getDoc,
+  onSnapshot
 } from 'firebase/firestore';
 import { 
   signInWithPopup, 
@@ -39,14 +49,54 @@ interface GuestData {
   createdAt: Timestamp;
 }
 
+interface RSVPData {
+  id: string;
+  name: string;
+  attendance: string;
+  message: string;
+  timestamp: any;
+}
+
+interface GlobalSettings {
+  childName: string;
+  fatherName: string;
+  motherName: string;
+  eventDate: string;
+  eventTime: string;
+  address: string;
+  mapUrl: string;
+  heroImage: string;
+  profileImage: string;
+}
+
 export const AdminDashboard: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'guests' | 'rsvps' | 'settings'>('guests');
+  
+  // Guests State
   const [guests, setGuests] = useState<GuestData[]>([]);
   const [newGuestName, setNewGuestName] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
+
+  // RSVPs State
+  const [rsvps, setRsvps] = useState<RSVPData[]>([]);
+
+  // Settings State
+  const [settings, setSettings] = useState<GlobalSettings>({
+    childName: 'Keyanu Azzam Azahab',
+    fatherName: 'Bapak Nama',
+    motherName: 'Ibu Nama',
+    eventDate: '2026-05-20',
+    eventTime: '08:00 - Selesai',
+    address: 'Jl. Contoh Alamat No. 123, Jakarta',
+    mapUrl: 'https://goo.gl/maps/...',
+    heroImage: 'https://picsum.photos/seed/gaming/1920/1080',
+    profileImage: 'https://picsum.photos/seed/boy/800/800'
+  });
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   const ADMIN_EMAIL = "estabantu5@gmail.com";
 
@@ -56,6 +106,8 @@ export const AdminDashboard: React.FC = () => {
       setLoading(false);
       if (currentUser && currentUser.email === ADMIN_EMAIL) {
         fetchGuests();
+        fetchRSVPs();
+        fetchSettings();
       }
     });
     return () => unsubscribe();
@@ -75,6 +127,29 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const fetchRSVPs = () => {
+    const q = query(collection(db, 'rsvps'), orderBy('timestamp', 'desc'));
+    return onSnapshot(q, (snapshot) => {
+      const rsvpList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as RSVPData[];
+      setRsvps(rsvpList);
+    });
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const docRef = doc(db, 'settings', 'global');
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setSettings(docSnap.data() as GlobalSettings);
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+    }
+  };
+
   const handleLogin = async () => {
     try {
       const provider = new GoogleAuthProvider();
@@ -88,6 +163,7 @@ export const AdminDashboard: React.FC = () => {
     try {
       await signOut(auth);
       setGuests([]);
+      setRsvps([]);
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -124,11 +200,34 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const copyLink = (slug: string) => {
+  const deleteRSVP = async (id: string) => {
+    if (!window.confirm("Hapus komentar/RSVP ini?")) return;
+    try {
+      await deleteDoc(doc(db, 'rsvps', id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `rsvps/${id}`);
+    }
+  };
+
+  const saveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingSettings(true);
+    try {
+      await setDoc(doc(db, 'settings', 'global'), settings);
+      alert("Pengaturan berhasil disimpan!");
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, 'settings/global');
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
+  const copyLink = (name: string) => {
+    const slug = name.trim().toLowerCase().replace(/\s+/g, '-');
     const baseUrl = window.location.origin;
     const link = `${baseUrl}/?to=${encodeURIComponent(slug)}`;
     navigator.clipboard.writeText(link);
-    setCopySuccess(slug);
+    setCopySuccess(name);
     setTimeout(() => setCopySuccess(null), 2000);
   };
 
@@ -150,173 +249,298 @@ export const AdminDashboard: React.FC = () => {
         <div className="glass p-8 rounded-2xl border-white/10 max-w-md w-full text-center">
           <Users className="w-16 h-16 text-neon-cyan mx-auto mb-6" />
           <h1 className="text-2xl font-heading mb-2">Admin Dashboard</h1>
-          <p className="text-white/60 mb-8">Silakan login dengan akun admin untuk mengelola tamu.</p>
+          <p className="text-white/60 mb-8">Silakan login dengan akun admin untuk mengelola undangan.</p>
           <button
             onClick={handleLogin}
             className="w-full py-3 bg-neon-cyan text-gaming-dark font-heading rounded-xl hover:bg-white transition-colors flex items-center justify-center gap-2"
           >
             Login with Google
           </button>
-          {user && user.email !== ADMIN_EMAIL && (
-            <p className="text-neon-pink text-xs mt-4">
-              Akses ditolak. Email {user.email} bukan admin.
-            </p>
-          )}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gaming-dark text-white p-6 md:p-10">
+    <div className="min-h-screen bg-gaming-dark text-white p-4 md:p-10">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
           <div>
-            <h1 className="text-3xl font-heading mb-2">Guest Manager</h1>
-            <p className="text-white/60">Kelola daftar tamu dan link undangan personal.</p>
+            <h1 className="text-3xl font-heading mb-2">Admin Panel</h1>
+            <p className="text-white/60">Kelola tamu, komentar, dan konten undangan.</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3 glass px-4 py-2 rounded-full border-white/10">
               <img src={user.photoURL || ''} className="w-8 h-8 rounded-full border border-neon-cyan" alt="Admin" />
               <span className="text-sm font-medium hidden sm:inline">{user.displayName}</span>
             </div>
-            <button
-              onClick={handleLogout}
-              className="p-2 text-white/40 hover:text-neon-pink transition-colors"
-              title="Logout"
-            >
+            <button onClick={handleLogout} className="p-2 text-white/40 hover:text-neon-pink transition-colors">
               <LogOut className="w-6 h-6" />
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Add Guest Form */}
-          <div className="lg:col-span-1">
-            <div className="glass p-6 rounded-2xl border-white/10 sticky top-10">
-              <h2 className="text-xl font-heading mb-6 flex items-center gap-2">
-                <Plus className="w-5 h-5 text-neon-cyan" />
-                Tambah Tamu
-              </h2>
-              <form onSubmit={addGuest} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-heading text-white/40 uppercase mb-2">Nama Tamu</label>
-                  <input
-                    type="text"
-                    value={newGuestName}
-                    onChange={(e) => setNewGuestName(e.target.value)}
-                    placeholder="Contoh: Pak Andra"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-neon-cyan transition-colors"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={isAdding || !newGuestName.trim()}
-                  className="w-full py-3 bg-neon-cyan text-gaming-dark font-heading rounded-xl hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-                >
-                  {isAdding ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
-                  Simpan Tamu
-                </button>
-              </form>
-            </div>
-          </div>
+        {/* Tabs */}
+        <div className="flex gap-2 mb-8 bg-white/5 p-1 rounded-xl w-fit">
+          {[
+            { id: 'guests', label: 'Tamu', icon: Users },
+            { id: 'rsvps', label: 'Komentar', icon: MessageSquare },
+            { id: 'settings', label: 'Pengaturan', icon: SettingsIcon },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-heading text-xs uppercase tracking-wider transition-all ${
+                activeTab === tab.id ? 'bg-neon-cyan text-gaming-dark' : 'text-white/60 hover:text-white'
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-          {/* Guest List */}
-          <div className="lg:col-span-2">
-            <div className="glass rounded-2xl border-white/10 overflow-hidden">
-              <div className="p-6 border-b border-white/10 flex items-center justify-between gap-4">
-                <h2 className="text-xl font-heading flex items-center gap-2">
-                  <Users className="w-5 h-5 text-neon-cyan" />
-                  Daftar Tamu ({guests.length})
-                </h2>
-                <div className="relative flex-1 max-w-xs">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Cari nama..."
-                    className="w-full bg-white/5 border border-white/10 rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-neon-cyan transition-colors"
-                  />
+        <AnimatePresence mode="wait">
+          {activeTab === 'guests' && (
+            <motion.div
+              key="guests"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+            >
+              <div className="lg:col-span-1">
+                <div className="glass p-6 rounded-2xl border-white/10 sticky top-10">
+                  <h2 className="text-xl font-heading mb-6 flex items-center gap-2">
+                    <Plus className="w-5 h-5 text-neon-cyan" />
+                    Tambah Tamu
+                  </h2>
+                  <form onSubmit={addGuest} className="space-y-4">
+                    <input
+                      type="text"
+                      value={newGuestName}
+                      onChange={(e) => setNewGuestName(e.target.value)}
+                      placeholder="Nama Tamu..."
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-neon-cyan transition-colors"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isAdding || !newGuestName.trim()}
+                      className="w-full py-3 bg-neon-cyan text-gaming-dark font-heading rounded-xl hover:bg-white transition-all flex items-center justify-center gap-2"
+                    >
+                      {isAdding ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
+                      Simpan
+                    </button>
+                  </form>
                 </div>
               </div>
+              <div className="lg:col-span-2">
+                <div className="glass rounded-2xl border-white/10 overflow-hidden">
+                  <div className="p-6 border-b border-white/10 flex items-center justify-between gap-4">
+                    <h2 className="text-xl font-heading">Daftar Tamu</h2>
+                    <div className="relative flex-1 max-w-xs">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                      <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Cari..."
+                        className="w-full bg-white/5 border border-white/10 rounded-full pl-10 pr-4 py-2 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <tbody className="divide-y divide-white/5">
+                        {filteredGuests.map((guest) => (
+                          <tr key={guest.id} className="hover:bg-white/5 transition-colors">
+                            <td className="px-6 py-4 font-medium">{guest.name}</td>
+                            <td className="px-6 py-4 text-xs text-neon-cyan">?to={guest.slug}</td>
+                            <td className="px-6 py-4 text-right flex justify-end gap-2">
+                              <button onClick={() => copyLink(guest.name)} className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-white">
+                                {copySuccess === guest.name ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                              </button>
+                              <button onClick={() => deleteGuest(guest.id)} className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-neon-pink">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
+          {activeTab === 'rsvps' && (
+            <motion.div
+              key="rsvps"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="glass rounded-2xl border-white/10 overflow-hidden"
+            >
+              <div className="p-6 border-b border-white/10">
+                <h2 className="text-xl font-heading">Komentar & RSVP</h2>
+              </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-left">
+                <table className="w-full">
                   <thead>
                     <tr className="text-xs font-heading text-white/40 uppercase border-b border-white/5">
-                      <th className="px-6 py-4">Nama Tamu</th>
-                      <th className="px-6 py-4">Link Undangan</th>
+                      <th className="px-6 py-4 text-left">Tamu</th>
+                      <th className="px-6 py-4 text-left">Status</th>
+                      <th className="px-6 py-4 text-left">Pesan</th>
                       <th className="px-6 py-4 text-right">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {filteredGuests.length > 0 ? (
-                      filteredGuests.map((guest) => (
-                        <tr key={guest.id} className="hover:bg-white/5 transition-colors group">
-                          <td className="px-6 py-4">
-                            <div className="font-medium">{guest.name}</div>
-                            <div className="text-[10px] text-white/30 uppercase mt-1">
-                              {guest.createdAt?.toDate().toLocaleDateString('id-ID', { 
-                                day: 'numeric', 
-                                month: 'short', 
-                                year: 'numeric' 
-                              })}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-2">
-                              <code className="text-xs text-neon-cyan bg-neon-cyan/10 px-2 py-1 rounded">
-                                ?to={guest.slug}
-                              </code>
-                              <button
-                                onClick={() => copyLink(guest.name)}
-                                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-white"
-                                title="Copy Link"
-                              >
-                                {copySuccess === guest.name ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                              </button>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <a
-                                href={`/?to=${encodeURIComponent(guest.name)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-neon-cyan"
-                                title="Buka Undangan"
-                              >
-                                <ExternalLink className="w-5 h-5" />
-                              </a>
-                              <button
-                                onClick={() => deleteGuest(guest.id)}
-                                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-neon-pink"
-                                title="Hapus"
-                              >
-                                <Trash2 className="w-5 h-5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={3} className="px-6 py-20 text-center">
-                          <div className="flex flex-col items-center gap-3 text-white/20">
-                            <Users className="w-12 h-12" />
-                            <p>Belum ada daftar tamu.</p>
-                          </div>
+                    {rsvps.map((rsvp) => (
+                      <tr key={rsvp.id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-6 py-4 font-medium">{rsvp.name}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-1 rounded-full text-[10px] uppercase font-heading ${
+                            rsvp.attendance === 'present' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                          }`}>
+                            {rsvp.attendance === 'present' ? 'Hadir' : 'Absen'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-white/60 max-w-xs truncate">{rsvp.message}</td>
+                        <td className="px-6 py-4 text-right">
+                          <button onClick={() => deleteRSVP(rsvp.id)} className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-neon-pink">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </td>
                       </tr>
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
-            </div>
-          </div>
-        </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'settings' && (
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="glass p-8 rounded-2xl border-white/10"
+            >
+              <form onSubmit={saveSettings} className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Data Anak */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-heading text-neon-cyan flex items-center gap-2">
+                      <UserIcon className="w-4 h-4" /> Data Utama
+                    </h3>
+                    <div>
+                      <label className="block text-[10px] text-white/40 uppercase mb-1">Nama Lengkap Anak</label>
+                      <input
+                        type="text"
+                        value={settings.childName}
+                        onChange={(e) => setSettings({...settings, childName: e.target.value})}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-white/40 uppercase mb-1">Nama Ayah</label>
+                      <input
+                        type="text"
+                        value={settings.fatherName}
+                        onChange={(e) => setSettings({...settings, fatherName: e.target.value})}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-white/40 uppercase mb-1">Nama Ibu</label>
+                      <input
+                        type="text"
+                        value={settings.motherName}
+                        onChange={(e) => setSettings({...settings, motherName: e.target.value})}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Waktu & Lokasi */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-heading text-neon-cyan flex items-center gap-2">
+                      <CalendarIcon className="w-4 h-4" /> Waktu & Lokasi
+                    </h3>
+                    <div>
+                      <label className="block text-[10px] text-white/40 uppercase mb-1">Tanggal Acara</label>
+                      <input
+                        type="date"
+                        value={settings.eventDate}
+                        onChange={(e) => setSettings({...settings, eventDate: e.target.value})}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-white/40 uppercase mb-1">Alamat Lengkap</label>
+                      <textarea
+                        value={settings.address}
+                        onChange={(e) => setSettings({...settings, address: e.target.value})}
+                        rows={3}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none resize-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-white/40 uppercase mb-1">Google Maps URL</label>
+                      <input
+                        type="text"
+                        value={settings.mapUrl}
+                        onChange={(e) => setSettings({...settings, mapUrl: e.target.value})}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Media */}
+                  <div className="md:col-span-2 space-y-4">
+                    <h3 className="text-sm font-heading text-neon-cyan flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4" /> Media & Foto
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] text-white/40 uppercase mb-1">Hero Image URL</label>
+                        <input
+                          type="text"
+                          value={settings.heroImage}
+                          onChange={(e) => setSettings({...settings, heroImage: e.target.value})}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-white/40 uppercase mb-1">Profile Image URL</label>
+                        <input
+                          type="text"
+                          value={settings.profileImage}
+                          onChange={(e) => setSettings({...settings, profileImage: e.target.value})}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-6 border-t border-white/10">
+                  <button
+                    type="submit"
+                    disabled={isSavingSettings}
+                    className="px-10 py-3 bg-neon-cyan text-gaming-dark font-heading rounded-xl hover:bg-white transition-all flex items-center gap-2"
+                  >
+                    {isSavingSettings ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                    Simpan Perubahan
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

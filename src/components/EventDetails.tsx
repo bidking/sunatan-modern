@@ -1,11 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Calendar, Clock, MapPin, ExternalLink } from 'lucide-react';
 import { Countdown } from './Countdown';
 import { Button } from '@/components/ui/button';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 export const EventDetails: React.FC = () => {
-  const eventDate = new Date('2026-06-06T10:00:00');
+  const [settings, setSettings] = useState<any>(null);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'global'), (doc) => {
+      if (doc.exists()) {
+        setSettings(doc.data());
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const eventDate = settings?.eventDate ? new Date(settings.eventDate + 'T' + (settings.eventTime?.split(' ')[0] || '10:00')) : new Date('2026-06-06T10:00:00');
+  const displayDate = settings?.eventDate ? new Date(settings.eventDate).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Sabtu, 06 Juni 2026';
+  const displayTime = settings?.eventTime || '10.00 – Selesai';
+  const displayAddress = settings?.address || 'Jl. Lanbau, Karang Asem Bar., Kec. Citeureup, Kabupaten Bogor, Jawa Barat, Indonesia';
+  const mapUrl = settings?.mapUrl || 'https://www.google.com/maps/search/?api=1&query=-6.4822237,106.8679418';
+  const embedMapUrl = settings?.mapUrl?.includes('query=') 
+    ? `https://maps.google.com/maps?q=${settings.mapUrl.split('query=')[1]}&hl=id&z=15&output=embed`
+    : "https://maps.google.com/maps?q=-6.4822237,106.8679418&hl=id&z=15&output=embed";
 
   return (
     <section id="event" className="py-20 px-6 relative">
@@ -45,14 +65,14 @@ export const EventDetails: React.FC = () => {
               <div className="flex items-start gap-3">
                 <Calendar className="w-5 h-5 text-neon-pink mt-1 shrink-0" />
                 <div>
-                  <p className="text-white font-medium text-lg">Sabtu, 06 Juni 2026</p>
+                  <p className="text-white font-medium text-lg">{displayDate}</p>
                   <p className="text-white/60 text-sm">Save the date on your calendar</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Clock className="w-5 h-5 text-neon-pink mt-1 shrink-0" />
                 <div>
-                  <p className="text-white font-medium text-lg">10.00 – Selesai</p>
+                  <p className="text-white font-medium text-lg">{displayTime}</p>
                   <p className="text-white/60 text-sm">Don't be late for the quest!</p>
                 </div>
               </div>
@@ -83,7 +103,7 @@ export const EventDetails: React.FC = () => {
                 <div>
                   <p className="text-white font-medium text-lg">Kediaman Kami (Rumah)</p>
                   <p className="text-white/70 text-sm leading-relaxed mt-1">
-                    Jl. Lanbau, Karang Asem Bar., Kec. Citeureup, Kabupaten Bogor, Jawa Barat, Indonesia
+                    {displayAddress}
                   </p>
                   <p className="text-white/40 text-xs mt-2 italic">Klik tombol di bawah untuk navigasi</p>
                 </div>
@@ -92,7 +112,7 @@ export const EventDetails: React.FC = () => {
               <Button 
                 variant="outline" 
                 className="w-full mt-4 border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-gaming-dark font-heading"
-                onClick={() => window.open('https://www.google.com/maps/search/?api=1&query=-6.4822237,106.8679418', '_blank')}
+                onClick={() => window.open(mapUrl, '_blank')}
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
                 LIHAT MAPS
@@ -109,7 +129,7 @@ export const EventDetails: React.FC = () => {
           className="mt-12 rounded-3xl overflow-hidden border border-white/10 h-[450px] relative"
         >
           <iframe
-            src="https://maps.google.com/maps?q=-6.4822237,106.8679418&hl=id&z=15&output=embed"
+            src={embedMapUrl}
             width="100%"
             height="100%"
             style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg) brightness(0.8)' }}
