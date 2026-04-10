@@ -18,6 +18,7 @@ import { MusicToggle } from './components/MusicToggle';
 import { FloatingNav } from './components/FloatingNav';
 import { BackgroundElements } from './components/BackgroundElements';
 import { LoadingScreen } from './components/LoadingScreen';
+import { AdminDashboard } from './components/AdminDashboard';
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -25,9 +26,13 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [guestName, setGuestName] = useState('');
+  const [isAdminPath, setIsAdminPath] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    // Check if we are on admin path
+    setIsAdminPath(window.location.pathname === '/admin');
+
     // Simulate initial loading
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -36,7 +41,11 @@ export default function App() {
     // Get guest name from URL
     const params = new URLSearchParams(window.location.search);
     const to = params.get('to');
-    if (to) setGuestName(to);
+    if (to) {
+      // Convert slug back to name (e.g., pak-andra -> Pak Andra)
+      const formattedName = to.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      setGuestName(formattedName);
+    }
 
     // Scroll listener for scroll-to-top button
     const handleScroll = () => {
@@ -67,6 +76,10 @@ export default function App() {
       setIsPlaying(!isPlaying);
     }
   };
+
+  if (isAdminPath) {
+    return <AdminDashboard />;
+  }
 
   return (
     <div className="relative min-h-screen bg-gaming-dark text-white selection:bg-neon-yellow selection:text-gaming-dark">

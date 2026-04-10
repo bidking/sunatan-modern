@@ -15,9 +15,25 @@ service cloud.firestore {
     //   - likes: number (required, >= 0)
     //   - likedBy: list (required, max 1000 items)
     //
+    // Collection: guests
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required, 1-100 chars)
+    //   - slug: string (required, 1-100 chars)
+    //   - createdAt: timestamp (required)
+    //
     // ===============================================================
 
     // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+             (request.auth.token.email == "estaaliansyah@gmail.com" && request.auth.token.email_verified == true);
+    }
+
     function isValidRSVP(data) {
       return data.keys().hasAll(['name', 'attendance', 'message', 'timestamp', 'likes', 'likedBy']) &&
              data.name is string && data.name.size() >= 1 && data.name.size() <= 50 &&
@@ -26,6 +42,13 @@ service cloud.firestore {
              data.timestamp is timestamp &&
              data.likes is number && data.likes >= 0 &&
              data.likedBy is list && data.likedBy.size() <= 1000;
+    }
+
+    function isValidGuest(data) {
+      return data.keys().hasAll(['name', 'slug', 'createdAt']) &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+             data.slug is string && data.slug.size() >= 1 && data.slug.size() <= 100 &&
+             data.createdAt is timestamp;
     }
 
     match /rsvps/{rsvpId} {
@@ -42,8 +65,13 @@ service cloud.firestore {
                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) &&
                       math.abs(request.resource.data.likes - resource.data.likes) == 1;
       
-      // No deletion
-      allow delete: if false;
+      // Admin can delete
+      allow delete: if isAdmin();
+    }
+
+    match /guests/{guestId} {
+      // Only admin can manage guests
+      allow read, write: if isAdmin() && (request.method != 'create' || isValidGuest(request.resource.data)) && (request.method != 'update' || isValidGuest(request.resource.data));
     }
   }
 }

@@ -13,12 +13,27 @@
         "likedBy": { "type": "array", "items": { "type": "string" }, "description": "User IDs who liked this comment" }
       },
       "required": ["name", "attendance", "message", "timestamp", "likes", "likedBy"]
+    },
+    "Guest": {
+      "title": "Guest",
+      "description": "Guest list for personalized links",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Guest name" },
+        "slug": { "type": "string", "description": "URL slug for the guest" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the guest was added" }
+      },
+      "required": ["name", "slug", "createdAt"]
     }
   },
   "firestore": {
     "/rsvps/{rsvpId}": {
       "schema": "RSVP",
       "description": "Collection of guest RSVPs"
+    },
+    "/guests/{guestId}": {
+      "schema": "Guest",
+      "description": "Collection of guests for personalized links"
     }
   }
 }
