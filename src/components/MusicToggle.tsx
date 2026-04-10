@@ -15,7 +15,7 @@ export const MusicToggle: React.FC<MusicToggleProps> = ({ isPlaying, onToggle })
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.9 }}
       onClick={onToggle}
-      className={`fixed bottom-6 left-6 z-50 w-12 h-12 rounded-full flex items-center justify-center glass border-neon-yellow/50 text-neon-yellow shadow-lg shadow-neon-yellow/20`}
+      className={`fixed bottom-28 left-6 z-50 w-12 h-12 rounded-full flex items-center justify-center glass border-neon-yellow/50 text-neon-yellow shadow-lg shadow-neon-yellow/20`}
     >
       <AnimatePresence mode="wait">
         {isPlaying ? (

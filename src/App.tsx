@@ -115,7 +115,7 @@ export default function App() {
             href="https://wa.me/6281234567890?text=Halo! Saya akan hadir di acara tasyakuran khitan Keyanu Azzam."
             target="_blank"
             rel="noopener noreferrer"
-            className="fixed bottom-24 left-6 z-50 w-12 h-12 rounded-full flex items-center justify-center bg-green-500 text-white shadow-lg shadow-green-500/20"
+            className="fixed bottom-44 left-6 z-50 w-12 h-12 rounded-full flex items-center justify-center bg-green-500 text-white shadow-lg shadow-green-500/20"
           >
             <MessageCircle className="w-6 h-6" />
           </motion.a>
@@ -130,7 +130,7 @@ export default function App() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full flex items-center justify-center glass border-neon-cyan/50 text-neon-cyan shadow-lg shadow-neon-cyan/20"
+                className="fixed bottom-28 right-6 z-50 w-12 h-12 rounded-full flex items-center justify-center glass border-neon-cyan/50 text-neon-cyan shadow-lg shadow-neon-cyan/20"
               >
                 <ArrowUp className="w-6 h-6" />
               </motion.button>
