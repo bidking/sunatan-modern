@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 3005;
 
   // Configure Multer for file uploads
   // Default to a local 'public/galeri' folder for dev
@@ -38,11 +38,49 @@ async function startServer() {
 
   const upload = multer({ 
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+    limits: { fileSize: 10 * 1024 * 1024 }, // Increase to 10MB for audio
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('audio/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only images and audio files are allowed'));
+      }
+    }
   });
 
   app.use(cors());
   app.use(express.json());
+
+  // API Route to resolve short Google Maps URLs
+  app.post("/api/resolve-map", async (req, res) => {
+    const { url } = req.body;
+    if (!url) return res.status(400).json({ error: "URL is required" });
+
+    try {
+      // Follow the redirect to get the long URL
+      const response = await fetch(url, { method: 'HEAD', redirect: 'follow' });
+      const longUrl = response.url;
+
+      // Extract address from long URL: .../place/Address+Name/@coords...
+      const placeMatch = longUrl.match(/\/place\/([^/]+)/);
+      if (placeMatch && placeMatch[1]) {
+        const decoded = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '));
+        const cleanAddress = decoded.split('/@')[0];
+        
+        // Also try to extract coordinates if they exist
+        // Format: @-6.4823363,106.867859,15z
+        const coordMatch = longUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+        const coordinates = coordMatch ? `${coordMatch[1]}, ${coordMatch[2]}` : null;
+
+        return res.json({ address: cleanAddress, coordinates });
+      }
+
+      res.status(404).json({ error: "Could not extract address from this URL" });
+    } catch (error) {
+      console.error("Resolve error:", error);
+      res.status(500).json({ error: "Failed to resolve URL" });
+    }
+  });
 
   // API Routes
   app.post("/api/upload", upload.single("image"), (req, res) => {

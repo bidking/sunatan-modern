@@ -61,9 +61,11 @@ service cloud.firestore {
              (!('eventTime' in data) || data.eventTime is string) &&
              (!('address' in data) || data.address is string) &&
              (!('mapUrl' in data) || data.mapUrl is string) &&
+             (!('coordinates' in data) || data.coordinates is string) &&
              (!('heroImage' in data) || data.heroImage is string) &&
              (!('profileImage' in data) || data.profileImage is string) &&
-             (!('gallery' in data) || (data.gallery is list && data.gallery.size() <= 10));
+             (!('gallery' in data) || (data.gallery is list && data.gallery.size() <= 10)) &&
+             (!('gifts' in data) || data.gifts is list);
     }
 
     match /rsvps/{rsvpId} {
