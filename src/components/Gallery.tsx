@@ -1,11 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Maximize2 } from 'lucide-react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 export const Gallery: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [settings, setSettings] = useState<any>(null);
 
-  const images = [
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'global'), (doc) => {
+      if (doc.exists()) {
+        setSettings(doc.data());
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const images = settings?.gallery || [
     'https://picsum.photos/seed/khitan1/800/1000',
     'https://picsum.photos/seed/khitan2/1000/800',
     'https://picsum.photos/seed/khitan3/800/800',
@@ -13,6 +25,9 @@ export const Gallery: React.FC = () => {
     'https://picsum.photos/seed/khitan5/1200/800',
     'https://picsum.photos/seed/khitan6/800/1000',
   ];
+
+  const childName = settings?.childName || 'Keyanu Azzam';
+  const firstName = childName.split(' ')[0];
 
   return (
     <section id="gallery" className="py-20 px-6">
@@ -26,7 +41,7 @@ export const Gallery: React.FC = () => {
           <h2 className="text-white font-heading text-3xl md:text-5xl mb-4">
             PHOTO <span className="text-neon-pink neon-glow-pink">GALLERY</span>
           </h2>
-          <p className="text-white/60">Momen-momen bahagia Abidzar</p>
+          <p className="text-white/60">Momen-momen bahagia {firstName}</p>
         </motion.div>
 
         <div className="columns-2 md:columns-3 gap-4 space-y-4">

@@ -39,9 +39,10 @@
         "mapUrl": { "type": "string" },
         "coordinates": { "type": "object", "properties": { "lat": { "type": "number" }, "lng": { "type": "number" } } },
         "heroImage": { "type": "string" },
-        "profileImage": { "type": "string" }
+        "profileImage": { "type": "string" },
+        "gallery": { "type": "array", "items": { "type": "string" } }
       },
-      "required": ["childName", "fatherName", "motherName", "eventDate", "address"]
+      "required": ["childName", "fatherName", "motherName", "eventDate", "address", "gallery"]
     }
   },
   "firestore": {

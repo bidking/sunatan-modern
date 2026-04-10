@@ -67,6 +67,7 @@ interface GlobalSettings {
   mapUrl: string;
   heroImage: string;
   profileImage: string;
+  gallery: string[];
 }
 
 export const AdminDashboard: React.FC = () => {
@@ -94,9 +95,18 @@ export const AdminDashboard: React.FC = () => {
     address: 'Jl. Contoh Alamat No. 123, Jakarta',
     mapUrl: 'https://goo.gl/maps/...',
     heroImage: 'https://picsum.photos/seed/gaming/1920/1080',
-    profileImage: 'https://picsum.photos/seed/boy/800/800'
+    profileImage: 'https://picsum.photos/seed/boy/800/800',
+    gallery: [
+      'https://picsum.photos/seed/1/800/600',
+      'https://picsum.photos/seed/2/800/600',
+      'https://picsum.photos/seed/3/800/600',
+      'https://picsum.photos/seed/4/800/600',
+      'https://picsum.photos/seed/5/800/600',
+      'https://picsum.photos/seed/6/800/600'
+    ]
   });
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [newGalleryUrl, setNewGalleryUrl] = useState('');
 
   const ADMIN_EMAIL = "estabantu5@gmail.com";
 
@@ -231,6 +241,31 @@ export const AdminDashboard: React.FC = () => {
     setTimeout(() => setCopySuccess(null), 2000);
   };
 
+  const addGalleryImage = () => {
+    if (!newGalleryUrl.trim()) return;
+    if (settings.gallery.length >= 10) {
+      alert("Maksimal 10 foto di galeri.");
+      return;
+    }
+    setSettings({
+      ...settings,
+      gallery: [...settings.gallery, newGalleryUrl.trim()]
+    });
+    setNewGalleryUrl('');
+  };
+
+  const removeGalleryImage = (index: number) => {
+    const newGallery = [...settings.gallery];
+    newGallery.splice(index, 1);
+    setSettings({ ...settings, gallery: newGallery });
+  };
+
+  const updateGalleryImage = (index: number, url: string) => {
+    const newGallery = [...settings.gallery];
+    newGallery[index] = url;
+    setSettings({ ...settings, gallery: newGallery });
+  };
+
   const filteredGuests = guests.filter(g => 
     g.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -266,11 +301,11 @@ export const AdminDashboard: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-          <div>
+          <div className="text-center md:text-left">
             <h1 className="text-3xl font-heading mb-2">Admin Panel</h1>
             <p className="text-white/60">Kelola tamu, komentar, dan konten undangan.</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center md:justify-end gap-4">
             <div className="flex items-center gap-3 glass px-4 py-2 rounded-full border-white/10">
               <img src={user.photoURL || ''} className="w-8 h-8 rounded-full border border-neon-cyan" alt="Admin" />
               <span className="text-sm font-medium hidden sm:inline">{user.displayName}</span>
@@ -282,7 +317,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-8 bg-white/5 p-1 rounded-xl w-fit">
+        <div className="flex overflow-x-auto gap-2 mb-8 bg-white/5 p-1 rounded-xl w-full md:w-fit no-scrollbar">
           {[
             { id: 'guests', label: 'Tamu', icon: Users },
             { id: 'rsvps', label: 'Komentar', icon: MessageSquare },
@@ -291,7 +326,7 @@ export const AdminDashboard: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-heading text-xs uppercase tracking-wider transition-all ${
+              className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg font-heading text-[10px] md:text-xs uppercase tracking-wider transition-all whitespace-nowrap ${
                 activeTab === tab.id ? 'bg-neon-cyan text-gaming-dark' : 'text-white/60 hover:text-white'
               }`}
             >
@@ -351,13 +386,13 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full min-w-[600px]">
                       <tbody className="divide-y divide-white/5">
                         {filteredGuests.map((guest) => (
                           <tr key={guest.id} className="hover:bg-white/5 transition-colors">
-                            <td className="px-6 py-4 font-medium">{guest.name}</td>
-                            <td className="px-6 py-4 text-xs text-neon-cyan">?to={guest.slug}</td>
-                            <td className="px-6 py-4 text-right flex justify-end gap-2">
+                            <td className="px-4 md:px-6 py-4 font-medium">{guest.name}</td>
+                            <td className="px-4 md:px-6 py-4 text-[10px] md:text-xs text-neon-cyan">?to={guest.slug}</td>
+                            <td className="px-4 md:px-6 py-4 text-right flex justify-end gap-2">
                               <button onClick={() => copyLink(guest.name)} className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-white">
                                 {copySuccess === guest.name ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
                               </button>
@@ -387,28 +422,28 @@ export const AdminDashboard: React.FC = () => {
                 <h2 className="text-xl font-heading">Komentar & RSVP</h2>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[600px]">
                   <thead>
-                    <tr className="text-xs font-heading text-white/40 uppercase border-b border-white/5">
-                      <th className="px-6 py-4 text-left">Tamu</th>
-                      <th className="px-6 py-4 text-left">Status</th>
-                      <th className="px-6 py-4 text-left">Pesan</th>
-                      <th className="px-6 py-4 text-right">Aksi</th>
+                    <tr className="text-[10px] md:text-xs font-heading text-white/40 uppercase border-b border-white/5">
+                      <th className="px-4 md:px-6 py-4 text-left">Tamu</th>
+                      <th className="px-4 md:px-6 py-4 text-left">Status</th>
+                      <th className="px-4 md:px-6 py-4 text-left">Pesan</th>
+                      <th className="px-4 md:px-6 py-4 text-right">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {rsvps.map((rsvp) => (
                       <tr key={rsvp.id} className="hover:bg-white/5 transition-colors">
-                        <td className="px-6 py-4 font-medium">{rsvp.name}</td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 md:px-6 py-4 font-medium">{rsvp.name}</td>
+                        <td className="px-4 md:px-6 py-4">
                           <span className={`px-2 py-1 rounded-full text-[10px] uppercase font-heading ${
                             rsvp.attendance === 'present' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
                           }`}>
                             {rsvp.attendance === 'present' ? 'Hadir' : 'Absen'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-white/60 max-w-xs truncate">{rsvp.message}</td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="px-4 md:px-6 py-4 text-sm text-white/60 max-w-[150px] md:max-w-xs truncate">{rsvp.message}</td>
+                        <td className="px-4 md:px-6 py-4 text-right">
                           <button onClick={() => deleteRSVP(rsvp.id)} className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-neon-pink">
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -523,6 +558,54 @@ export const AdminDashboard: React.FC = () => {
                           className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none"
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Galeri Foto */}
+                  <div className="md:col-span-2 space-y-4 pt-4 border-t border-white/5">
+                    <h3 className="text-sm font-heading text-neon-cyan flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4" /> Galeri Foto (Maks 10)
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {settings.gallery.map((url, index) => (
+                        <div key={index} className="glass p-3 rounded-xl border-white/10 relative group">
+                          <div className="aspect-video rounded-lg overflow-hidden mb-3 bg-white/5">
+                            <img src={url} className="w-full h-full object-cover" alt={`Gallery ${index}`} referrerPolicy="no-referrer" />
+                          </div>
+                          <input
+                            type="text"
+                            value={url}
+                            onChange={(e) => updateGalleryImage(index, e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs focus:border-neon-cyan outline-none"
+                            placeholder="Image URL..."
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeGalleryImage(index)}
+                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                      {settings.gallery.length < 10 && (
+                        <div className="glass p-4 rounded-xl border-dashed border-white/20 flex flex-col items-center justify-center gap-3 min-h-[150px]">
+                          <input
+                            type="text"
+                            value={newGalleryUrl}
+                            onChange={(e) => setNewGalleryUrl(e.target.value)}
+                            placeholder="Paste image URL here..."
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:border-neon-cyan outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={addGalleryImage}
+                            className="w-full py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-heading rounded-lg transition-colors flex items-center justify-center gap-2"
+                          >
+                            <Plus className="w-4 h-4" /> Tambah Foto
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
