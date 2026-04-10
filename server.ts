@@ -5,6 +5,7 @@ import { createServer as createViteServer } from "vite";
 import multer from "multer";
 import fs from "fs";
 import cors from "cors";
+import "dotenv/config";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
