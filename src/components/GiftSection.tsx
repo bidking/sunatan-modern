@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Gift, Copy, Check, CreditCard } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
 
 export const GiftSection: React.FC = () => {
   const [copied, setCopied] = useState<string | null>(null);

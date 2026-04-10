@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Calendar, Clock, MapPin, ExternalLink } from 'lucide-react';
 import { Countdown } from './Countdown';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
 
 export const EventDetails: React.FC = () => {
   const eventDate = new Date('2026-06-06T10:00:00');
