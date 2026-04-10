@@ -14,112 +14,112 @@ async function startServer() {
   const app = express();
   const PORT = process.env.PORT || 3005;
 
-  // Configure Multer for file uploads
-  // Default to a local 'public/galeri' folder for dev
-  // On Alibaba server, the user should set UPLOAD_DIR=/home/esta/galeri
   const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), "public", "galeri");
-  
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
+  if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
   const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, uploadDir);
-    },
+    destination: (req, file, cb) => cb(null, uploadDir),
     filename: (req, file, cb) => {
       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      const ext = path.extname(file.originalname);
-      // Clean filename: remove spaces and special chars
-      const originalName = path.parse(file.originalname).name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      cb(null, `${originalName}-${uniqueSuffix}${ext}`);
+      cb(null, `${path.parse(file.originalname).name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${uniqueSuffix}${path.extname(file.originalname)}`);
     },
   });
 
   const upload = multer({ 
     storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // Increase to 10MB for audio
+    limits: { fileSize: 15 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
-      if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('audio/')) {
-        cb(null, true);
-      } else {
-        cb(new Error('Only images and audio files are allowed'));
-      }
+      if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('audio/')) cb(null, true);
+      else cb(new Error('Only images and audio files are allowed'));
     }
   });
 
   app.use(cors());
   app.use(express.json());
 
-  // API Route to resolve short Google Maps URLs
   app.post("/api/resolve-map", async (req, res) => {
     const { url } = req.body;
-    if (!url) return res.status(400).json({ error: "URL is required" });
-
+    if (!url) return res.status(400).json({ error: "URL required" });
     try {
-      // Follow the redirect to get the long URL
       const response = await fetch(url, { method: 'HEAD', redirect: 'follow' });
       const longUrl = response.url;
-
-      // Extract address from long URL: .../place/Address+Name/@coords...
       const placeMatch = longUrl.match(/\/place\/([^/]+)/);
-      if (placeMatch && placeMatch[1]) {
-        const decoded = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '));
-        const cleanAddress = decoded.split('/@')[0];
-        
-        // Also try to extract coordinates if they exist
-        // Format: @-6.4823363,106.867859,15z
+      if (placeMatch) {
+        const address = decodeURIComponent(placeMatch[1].replace(/\+/g, ' ')).split('/@')[0];
         const coordMatch = longUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-        const coordinates = coordMatch ? `${coordMatch[1]}, ${coordMatch[2]}` : null;
-
-        return res.json({ address: cleanAddress, coordinates });
+        return res.json({ address, coordinates: coordMatch ? `${coordMatch[1]}, ${coordMatch[2]}` : null });
       }
-
-      res.status(404).json({ error: "Could not extract address from this URL" });
-    } catch (error) {
-      console.error("Resolve error:", error);
-      res.status(500).json({ error: "Failed to resolve URL" });
-    }
+      res.status(404).json({ error: "Not found" });
+    } catch (e) { res.status(500).json({ error: "Failed" }); }
   });
 
-  // API Routes
   app.post("/api/upload", upload.single("image"), (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
-
-    // Construct the URL
-    // In production on Alibaba, the user wants https://justbluenyellow.my.id/galeri/filename
-    // If BASE_URL is not set, we use a relative path /galeri/filename
-    const baseUrl = process.env.BASE_URL || "/galeri";
-    const fileUrl = `${baseUrl}/${req.file.filename}`;
-
-    res.json({ url: fileUrl });
+    if (!req.file) return res.status(400).json({ error: "No file" });
+    res.json({ url: `${process.env.BASE_URL || "/galeri"}/${req.file.filename}` });
   });
 
-  // Serve the uploaded files statically
-  // On Alibaba, Nginx handles /galeri, but for dev we need it.
   app.use("/galeri", express.static(uploadDir));
 
-  // Vite middleware for development
+  // --- DYNAMIC SEO ENGINE ---
+  const injectSEO = async (html: string, guest: string) => {
+    try {
+      const response = await fetch(`https://firestore.googleapis.com/v1/projects/sunatan-azam/databases/(default)/documents/settings/global`);
+      const data = await response.json();
+      
+      let title = "Undangan Tasyakuran Khitan";
+      let desc = "Kami mengundang Anda untuk merayakan momen spesial tasyakuran khitan putra kami.";
+      let image = "";
+      let favicon = "/vite.svg";
+
+      if (data.fields) {
+        title = data.fields.ogTitle?.stringValue || title;
+        desc = data.fields.ogDescription?.stringValue || desc;
+        image = data.fields.ogImage?.stringValue || image;
+        favicon = data.fields.faviconUrl?.stringValue || favicon;
+      }
+
+      // Add Guest Name to SEO
+      if (guest) {
+        title = title.replace("{{name}}", guest);
+        if (!title.includes(guest)) title = `Undangan Spesial Untuk ${guest}`;
+        desc = desc.replace("{{name}}", guest);
+      }
+
+      return html
+        .replace(/<title>.*?<\/title>/, `<title>${title}</title>`)
+        .replace(/property="og:title" content=".*?"/g, `property="og:title" content="${title}"`)
+        .replace(/property="og:description" content=".*?"/g, `property="og:description" content="${desc}"`)
+        .replace(/property="og:image" content=".*?"/g, `property="og:image" content="${image}"`)
+        .replace(/property="twitter:title" content=".*?"/g, `property="twitter:title" content="${title}"`)
+        .replace(/property="twitter:description" content=".*?"/g, `property="twitter:description" content="${desc}"`)
+        .replace(/property="twitter:image" content=".*?"/g, `property="twitter:image" content="${image}"`)
+        .replace(/id="favicon" rel="icon" type="image\/png" href=".*?"/, `id="favicon" rel="icon" type="image/png" href="${favicon}"`);
+    } catch (e) { return html; }
+  };
+
   if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
+    const vite = await createViteServer({ server: { middlewareMode: true }, appType: "spa" });
     app.use(vite.middlewares);
+    app.use("*", async (req, res) => {
+      try {
+        let template = fs.readFileSync(path.resolve(__dirname, "index.html"), "utf-8");
+        template = await vite.transformIndexHtml(req.originalUrl, template);
+        const guest = (req.query.to as string || "").split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        res.status(200).set({ "Content-Type": "text/html" }).end(await injectSEO(template, guest));
+      } catch (e) { res.status(500).end(e); }
+    });
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+    app.use(express.static(distPath, { index: false }));
+    app.get("*", async (req, res) => {
+      try {
+        const template = fs.readFileSync(path.join(distPath, "index.html"), "utf-8");
+        const guest = (req.query.to as string || "").split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        res.status(200).set({ "Content-Type": "text/html" }).end(await injectSEO(template, guest));
+      } catch (e) { res.status(500).end("Error"); }
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-    console.log(`Upload directory: ${uploadDir}`);
-  });
+  app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
 }
-
 startServer();
