@@ -126,8 +126,8 @@ export const AdminDashboard: React.FC = () => {
     gifts: [],
     musicUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
     musicTitle: 'Default Music',
-    ogTitle: 'Undangan Tasyakuran Khitan',
-    ogDescription: 'Kami mengundang Anda untuk merayakan momen spesial tasyakuran khitan putra kami.',
+    ogTitle: '',
+    ogDescription: '',
     ogImage: '',
     faviconUrl: ''
   });
@@ -185,7 +185,15 @@ export const AdminDashboard: React.FC = () => {
         const data = docSnap.data() as GlobalSettings;
         const gallery = [...(data.gallery || [])];
         while (gallery.length < 10) gallery.push('');
-        setSettings({ ...data, gallery, gifts: data.gifts || [] });
+        setSettings({ 
+          ...data, 
+          gallery, 
+          gifts: data.gifts || [],
+          ogTitle: data.ogTitle || '',
+          ogDescription: data.ogDescription || '',
+          ogImage: data.ogImage || '',
+          faviconUrl: data.faviconUrl || ''
+        });
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
@@ -667,11 +675,11 @@ export const AdminDashboard: React.FC = () => {
                   <div className="space-y-6">
                     <div>
                       <label className="block text-[10px] text-white/40 uppercase mb-1 font-bold">Judul Undangan (OG Title)</label>
-                      <input type="text" value={settings.ogTitle} onChange={(e) => setSettings({...settings, ogTitle: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none text-white text-sm" placeholder="Contoh: Undangan Tasyakuran Khitan Wahid" />
+                      <input type="text" value={settings.ogTitle || ''} onChange={(e) => setSettings({...settings, ogTitle: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none text-white text-sm" placeholder="Contoh: Undangan Tasyakuran Khitan Wahid" />
                     </div>
                     <div>
                       <label className="block text-[10px] text-white/40 uppercase mb-1 font-bold">Deskripsi Singkat (OG Description)</label>
-                      <textarea value={settings.ogDescription} onChange={(e) => setSettings({...settings, ogDescription: e.target.value})} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none resize-none text-white text-sm" placeholder="Kami mengundang Anda untuk merayakan..." />
+                      <textarea value={settings.ogDescription || ''} onChange={(e) => setSettings({...settings, ogDescription: e.target.value})} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none resize-none text-white text-sm" placeholder="Kami mengundang Anda untuk merayakan..." />
                     </div>
                   </div>
 
