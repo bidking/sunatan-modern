@@ -16,8 +16,11 @@ import { GiftSection } from './components/GiftSection';
 import { Footer } from './components/Footer';
 import { MusicToggle } from './components/MusicToggle';
 import { FloatingNav } from './components/FloatingNav';
+import { BackgroundElements } from './components/BackgroundElements';
+import { LoadingScreen } from './components/LoadingScreen';
 
 export default function App() {
+  const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -25,6 +28,11 @@ export default function App() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    // Simulate initial loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
+
     // Get guest name from URL
     const params = new URLSearchParams(window.location.search);
     const to = params.get('to');
@@ -35,7 +43,10 @@ export default function App() {
       setShowScrollTop(window.scrollY > 500);
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(timer);
+    };
   }, []);
 
   const handleOpen = () => {
@@ -59,7 +70,12 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen bg-gaming-dark text-white selection:bg-neon-yellow selection:text-gaming-dark">
+      <AnimatePresence mode="wait">
+        {isLoading && <LoadingScreen key="loader" />}
+      </AnimatePresence>
+
       <div className="gaming-bg"></div>
+      <BackgroundElements />
       
       <audio 
         ref={audioRef} 

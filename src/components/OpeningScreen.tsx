@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Gamepad2, Play } from 'lucide-react';
+import { Gamepad2, Play, Trophy, Zap, Target, Cpu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface OpeningScreenProps {
@@ -16,12 +16,35 @@ export const OpeningScreen: React.FC<OpeningScreenProps> = ({ onOpen, guestName 
       transition={{ duration: 0.8, ease: "easeInOut" }}
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gaming-dark overflow-hidden"
     >
-      {/* Background symbols */}
+      <div className="gaming-grid"></div>
+      
+      {/* Background symbols & Icons */}
       <div className="absolute inset-0 opacity-10 pointer-events-none overflow-hidden">
-        <div className="absolute top-10 left-10 text-neon-pink text-6xl rotate-12">△</div>
-        <div className="absolute top-1/4 right-20 text-neon-cyan text-6xl -rotate-12">□</div>
-        <div className="absolute bottom-20 left-1/4 text-neon-yellow text-6xl rotate-45">✕</div>
-        <div className="absolute bottom-1/3 right-1/4 text-white text-6xl -rotate-45">○</div>
+        <motion.div 
+          animate={{ rotate: 360 }} 
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute top-10 left-10 text-neon-pink text-6xl"
+        >△</motion.div>
+        <motion.div 
+          animate={{ y: [0, 20, 0] }} 
+          transition={{ duration: 4, repeat: Infinity }}
+          className="absolute top-1/4 right-20 text-neon-cyan text-6xl"
+        >□</motion.div>
+        <motion.div 
+          animate={{ x: [0, 20, 0] }} 
+          transition={{ duration: 5, repeat: Infinity }}
+          className="absolute bottom-20 left-1/4 text-neon-yellow text-6xl"
+        >✕</motion.div>
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1] }} 
+          transition={{ duration: 3, repeat: Infinity }}
+          className="absolute bottom-1/3 right-1/4 text-white text-6xl"
+        >○</motion.div>
+        
+        <Trophy className="absolute top-1/3 left-1/4 text-neon-yellow w-12 h-12 -rotate-12" />
+        <Zap className="absolute top-2/3 right-1/3 text-neon-pink w-10 h-10 rotate-12" />
+        <Target className="absolute top-1/2 right-10 text-neon-cyan w-16 h-16" />
+        <Cpu className="absolute bottom-10 left-10 text-white w-14 h-14 opacity-50" />
       </div>
 
       <motion.div

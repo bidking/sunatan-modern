@@ -82,7 +82,10 @@ export const EventDetails: React.FC = () => {
                 <MapPin className="w-5 h-5 text-neon-cyan mt-1 shrink-0" />
                 <div>
                   <p className="text-white font-medium text-lg">Kediaman Kami (Rumah)</p>
-                  <p className="text-white/60 text-sm">Klik tombol di bawah untuk navigasi</p>
+                  <p className="text-white/70 text-sm leading-relaxed mt-1">
+                    Jl. Lanbau, Karang Asem Bar., Kec. Citeureup, Kabupaten Bogor, Jawa Barat, Indonesia
+                  </p>
+                  <p className="text-white/40 text-xs mt-2 italic">Klik tombol di bawah untuk navigasi</p>
                 </div>
               </div>
               
@@ -103,7 +106,7 @@ export const EventDetails: React.FC = () => {
           initial={{ y: 50, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true }}
-          className="mt-12 rounded-3xl overflow-hidden border border-white/10 h-80 relative"
+          className="mt-12 rounded-3xl overflow-hidden border border-white/10 h-[450px] relative"
         >
           <iframe
             src="https://maps.google.com/maps?q=-6.4822237,106.8679418&hl=id&z=15&output=embed"

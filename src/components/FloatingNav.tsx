@@ -22,15 +22,18 @@ export const FloatingNav: React.FC = () => {
       <ul className="flex items-center gap-6 md:gap-10">
         {navItems.map((item, index) => (
           <li key={index}>
-            <a
-              href={item.href}
-              className="text-white/60 hover:text-neon-cyan transition-colors flex flex-col items-center gap-1 group"
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                document.querySelector(item.href)?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="text-white/60 hover:text-neon-cyan transition-colors flex flex-col items-center gap-1 group cursor-pointer"
             >
               <item.icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
               <span className="text-[8px] font-heading uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
                 {item.label}
               </span>
-            </a>
+            </button>
           </li>
         ))}
       </ul>
