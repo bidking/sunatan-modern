@@ -1,8 +1,10 @@
 {
+  "version": 2,
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/api/upload", "destination": "http://8.215.4.168:3005/api/upload" },
+    { "source": "/api/resolve-map", "destination": "http://8.215.4.168:3005/api/resolve-map" },
+    { "source": "/galeri/:path*", "destination": "http://8.215.4.168:3005/galeri/:path*" },
+    { "source": "/", "destination": "/api/index" },
+    { "source": "/(.*)", "destination": "/api/index" }
   ]
 }
