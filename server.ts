@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import multer from "multer";
 import fs from "fs";
+import cors from "cors";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,6 +40,7 @@ async function startServer() {
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
   });
 
+  app.use(cors());
   app.use(express.json());
 
   // API Routes

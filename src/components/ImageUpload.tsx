@@ -35,7 +35,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label
     formData.append('image', file);
 
     try {
-      const response = await fetch('/api/upload', {
+      // Use VITE_UPLOAD_API_URL if defined (for cross-domain upload from Vercel to Alibaba)
+      // Otherwise use relative path /api/upload
+      const uploadUrl = import.meta.env.VITE_UPLOAD_API_URL || '/api/upload';
+      
+      const response = await fetch(uploadUrl, {
         method: 'POST',
         body: formData,
       });
