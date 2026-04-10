@@ -17,7 +17,9 @@ import {
   MapPin,
   Image as ImageIcon,
   Calendar as CalendarIcon,
-  User as UserIcon
+  User as UserIcon,
+  Upload,
+  Link as LinkIcon
 } from 'lucide-react';
 import { 
   collection, 
@@ -41,6 +43,7 @@ import {
   User
 } from 'firebase/auth';
 import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
+import { ImageUpload } from './ImageUpload';
 
 interface GuestData {
   id: string;
@@ -539,25 +542,17 @@ export const AdminDashboard: React.FC = () => {
                     <h3 className="text-sm font-heading text-neon-cyan flex items-center gap-2">
                       <ImageIcon className="w-4 h-4" /> Media & Foto
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[10px] text-white/40 uppercase mb-1">Hero Image URL</label>
-                        <input
-                          type="text"
-                          value={settings.heroImage}
-                          onChange={(e) => setSettings({...settings, heroImage: e.target.value})}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-white/40 uppercase mb-1">Profile Image URL</label>
-                        <input
-                          type="text"
-                          value={settings.profileImage}
-                          onChange={(e) => setSettings({...settings, profileImage: e.target.value})}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:border-neon-cyan outline-none"
-                        />
-                      </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <ImageUpload
+                        label="Hero Image"
+                        value={settings.heroImage}
+                        onChange={(url) => setSettings({...settings, heroImage: url})}
+                      />
+                      <ImageUpload
+                        label="Profile Image"
+                        value={settings.profileImage}
+                        onChange={(url) => setSettings({...settings, profileImage: url})}
+                      />
                     </div>
                   </div>
 
@@ -569,40 +564,34 @@ export const AdminDashboard: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {settings.gallery.map((url, index) => (
                         <div key={index} className="glass p-3 rounded-xl border-white/10 relative group">
-                          <div className="aspect-video rounded-lg overflow-hidden mb-3 bg-white/5">
-                            <img src={url} className="w-full h-full object-cover" alt={`Gallery ${index}`} referrerPolicy="no-referrer" />
-                          </div>
-                          <input
-                            type="text"
+                          <ImageUpload
+                            label={`Foto ${index + 1}`}
                             value={url}
-                            onChange={(e) => updateGalleryImage(index, e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs focus:border-neon-cyan outline-none"
-                            placeholder="Image URL..."
+                            onChange={(newUrl) => updateGalleryImage(index, newUrl)}
                           />
                           <button
                             type="button"
                             onClick={() => removeGalleryImage(index)}
-                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-20"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
                       ))}
                       {settings.gallery.length < 10 && (
-                        <div className="glass p-4 rounded-xl border-dashed border-white/20 flex flex-col items-center justify-center gap-3 min-h-[150px]">
-                          <input
-                            type="text"
+                        <div className="glass p-4 rounded-xl border-dashed border-white/20 flex flex-col gap-3 min-h-[150px]">
+                          <ImageUpload
+                            label="Tambah Foto Baru"
                             value={newGalleryUrl}
-                            onChange={(e) => setNewGalleryUrl(e.target.value)}
-                            placeholder="Paste image URL here..."
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:border-neon-cyan outline-none"
+                            onChange={(url) => setNewGalleryUrl(url)}
                           />
                           <button
                             type="button"
                             onClick={addGalleryImage}
-                            className="w-full py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-heading rounded-lg transition-colors flex items-center justify-center gap-2"
+                            disabled={!newGalleryUrl}
+                            className="w-full py-2 bg-neon-cyan text-gaming-dark text-xs font-heading rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                           >
-                            <Plus className="w-4 h-4" /> Tambah Foto
+                            <Plus className="w-4 h-4" /> Konfirmasi Tambah
                           </button>
                         </div>
                       )}

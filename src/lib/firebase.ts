@@ -9,6 +9,7 @@ export const db = (firebaseConfig as any).firestoreDatabaseId
   : getFirestore(app);
 export const auth = getAuth(app);
 
+
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',
