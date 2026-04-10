@@ -590,47 +590,26 @@ export const AdminDashboard: React.FC = () => {
                       </span>
                     </div>
                     
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                       {Array.from({ length: 10 }).map((_, index) => {
                         const url = settings.gallery[index] || '';
                         return (
-                          <div key={index} className="glass p-2 rounded-xl border-white/10 flex flex-col gap-2 group">
-                            <div className="aspect-square rounded-lg overflow-hidden bg-white/5 border border-white/5 relative">
-                              {url ? (
-                                <>
-                                  <img 
-                                    src={url} 
-                                    alt={`Slot ${index + 1}`} 
-                                    className="w-full h-full object-cover"
-                                    referrerPolicy="no-referrer"
-                                    onError={(e) => {
-                                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Error';
-                                    }}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => removeGalleryImage(index)}
-                                    className="absolute top-1 right-1 p-1 bg-red-500/80 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </>
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-white/10">
-                                  <ImageIcon className="w-6 h-6" />
-                                </div>
-                              )}
-                              <div className="absolute bottom-0 left-0 right-0 bg-gaming-dark/80 py-1 px-2 text-[8px] font-heading text-center">
-                                SLOT {index + 1}
-                              </div>
-                            </div>
-                            <input
-                              type="text"
+                          <div key={index} className="relative group">
+                            <ImageUpload
+                              label={`Slot Galeri ${index + 1}`}
                               value={url}
-                              onChange={(e) => updateGalleryImage(index, e.target.value)}
-                              placeholder="https://..."
-                              className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] focus:border-neon-cyan outline-none"
+                              onChange={(newUrl) => updateGalleryImage(index, newUrl)}
                             />
+                            {url && (
+                              <button
+                                type="button"
+                                onClick={() => removeGalleryImage(index)}
+                                className="absolute top-8 right-12 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                                title="Hapus Foto"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            )}
                           </div>
                         );
                       })}
