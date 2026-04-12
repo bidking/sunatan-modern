@@ -131,25 +131,38 @@ export const AdminDashboard: React.FC = () => {
     ogImage: '',
     faviconUrl: ''
   });
-  const [isSavingSettings, setIsSavingSettings] = useState(false);
-  const [newGalleryUrl, setNewGalleryUrl] = useState('');
-  const [isUploadingMusic, setIsUploadingMusic] = useState(false);
-  const [previewPlaying, setPreviewPlaying] = useState(false);
+  const [status, setStatus] = useState<{message: string; type: 'success' | 'error' | 'info'} | null>(null);
   const previewAudioRef = React.useRef<HTMLAudioElement | null>(null);
+
+  const showStatus = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setStatus({ message, type });
+    setTimeout(() => setStatus(null), 3000);
+  };
 
   const ADMIN_EMAILS = ["estabantu5@gmail.com", "estaaliansyah@gmail.com"];
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    let unsubscribeRSVPs: (() => void) | undefined;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
       if (currentUser && ADMIN_EMAILS.includes(currentUser.email || '')) {
         fetchGuests();
-        fetchRSVPs();
         fetchSettings();
+        // Clean up previous listener if any
+        if (unsubscribeRSVPs) unsubscribeRSVPs();
+        unsubscribeRSVPs = fetchRSVPs();
+      } else {
+        if (unsubscribeRSVPs) unsubscribeRSVPs();
+        unsubscribeRSVPs = undefined;
       }
     });
-    return () => unsubscribe();
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeRSVPs) unsubscribeRSVPs();
+    };
   }, []);
 
   const fetchGuests = async () => {
@@ -263,9 +276,10 @@ export const AdminDashboard: React.FC = () => {
     setIsSavingSettings(true);
     try {
       await setDoc(doc(db, 'settings', 'global'), settings);
-      alert("Pengaturan berhasil disimpan!");
+      showStatus("Pengaturan berhasil disimpan!", 'success');
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, 'settings/global');
+      showStatus("Gagal menyimpan pengaturan.", 'error');
     } finally {
       setIsSavingSettings(false);
     }
@@ -417,7 +431,11 @@ export const AdminDashboard: React.FC = () => {
                   <form onSubmit={addGuest} className="space-y-4">
                     <input type="text" value={newGuestName} onChange={(e) => setNewGuestName(e.target.value)} placeholder="Nama Tamu..." className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-neon-cyan transition-colors" />
                     <button type="submit" disabled={isAdding || !newGuestName.trim()} className="w-full py-3 bg-neon-cyan text-gaming-dark font-heading rounded-xl hover:bg-white transition-all flex items-center justify-center gap-2">
-                      {isAdding ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />} Simpan
+                       {isAdding ? (
+                         <Loader2 key="adding-loader" className="w-5 h-5 animate-spin" />
+                       ) : (
+                         <Plus key="add-icon" className="w-5 h-5" />
+                       )} Simpan
                     </button>
                   </form>
                 </div>
@@ -440,8 +458,12 @@ export const AdminDashboard: React.FC = () => {
                             <td className="px-4 md:px-6 py-4 text-[10px] md:text-xs text-neon-cyan">?to={guest.slug}</td>
                             <td className="px-4 md:px-6 py-4 text-right flex justify-end gap-2">
                               <button onClick={() => copyLink(guest.name)} className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-white">
-                                {copySuccess === guest.name ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                              </button>
+                                 {copySuccess === guest.name ? (
+                                   <CheckCircle2 key={`check-${guest.id}`} className="w-4 h-4 text-green-400" />
+                                 ) : (
+                                   <Copy key={`copy-${guest.id}`} className="w-4 h-4" />
+                                 )}
+                               </button>
                               <button onClick={() => deleteGuest(guest.id)} className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-neon-pink">
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -533,9 +555,9 @@ export const AdminDashboard: React.FC = () => {
                             try {
                               const res = await fetch('/api/resolve-map', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
                               const data = await res.json();
-                              if (data.address) { setSettings(prev => ({ ...prev, address: data.address, coordinates: prev.coordinates || data.coordinates || '' })); alert("Alamat berhasil ditemukan!"); }
-                              else { alert("Tidak dapat menemukan alamat."); }
-                            } catch (error) { alert("Terjadi kesalahan teknis."); }
+                              if (data.address) { setSettings(prev => ({ ...prev, address: data.address, coordinates: prev.coordinates || data.coordinates || '' })); showStatus("Alamat berhasil ditemukan!", 'success'); }
+                              else { showStatus("Tidak dapat menemukan alamat.", 'error'); }
+                            } catch (error) { showStatus("Terjadi kesalahan teknis.", 'error'); }
                           }} className="px-4 py-2.5 bg-neon-cyan/10 hover:bg-neon-cyan text-neon-cyan hover:text-gaming-dark text-[10px] font-heading rounded-xl transition-all border border-neon-cyan/20 whitespace-nowrap uppercase tracking-widest shadow-lg shadow-neon-cyan/5">Cek Alamat</button>
                         </div>
                       </div>
@@ -572,7 +594,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 <div className="flex justify-end pt-6 border-t border-white/10">
                   <button type="submit" disabled={isSavingSettings} className="px-10 py-3 bg-neon-cyan text-gaming-dark font-heading rounded-xl hover:bg-white transition-all flex items-center gap-2">
-                    {isSavingSettings ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />} Simpan Perubahan
+                    {isSavingSettings ? <Loader2 key="settings-loader" className="w-5 h-5 animate-spin" /> : <Save key="settings-save" className="w-5 h-5" />} Simpan Perubahan
                   </button>
                 </div>
               </form>
@@ -617,7 +639,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 {(settings.gifts || []).length === 0 && (<div className="text-center py-20 border-2 border-dashed border-white/5 rounded-3xl"><Gift className="w-12 h-12 text-white/10 mx-auto mb-4" /><p className="text-white/40 font-heading">Belum ada data hadiah digital.</p></div>)}
                 <div className="flex justify-end pt-8 border-t border-white/10">
-                  <button type="submit" disabled={isSavingSettings} className="px-10 py-3 bg-neon-yellow text-gaming-dark font-heading rounded-xl hover:bg-white transition-all flex items-center gap-2">{isSavingSettings ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />} Simpan Hadiah Digital</button>
+                  <button type="submit" disabled={isSavingSettings} className="px-10 py-3 bg-neon-yellow text-gaming-dark font-heading rounded-xl hover:bg-white transition-all flex items-center gap-2">{isSavingSettings ? <Loader2 key="gift-loader" className="w-5 h-5 animate-spin" /> : <Save key="gift-save" className="w-5 h-5" />} Simpan Hadiah Digital</button>
                 </div>
               </form>
             </motion.div>
@@ -657,7 +679,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 <div className="flex justify-end pt-8 border-t border-white/10">
                   <button type="submit" disabled={isSavingSettings} className="px-10 py-3 bg-neon-pink text-white font-heading rounded-xl hover:bg-white hover:text-gaming-dark transition-all flex items-center gap-2">
-                    {isSavingSettings ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />} Simpan Konfigurasi Musik
+                    {isSavingSettings ? <Loader2 key="music-loader" className="w-5 h-5 animate-spin" /> : <Save key="music-save" className="w-5 h-5" />} Simpan Konfigurasi Musik
                   </button>
                 </div>
               </form>
@@ -703,10 +725,30 @@ export const AdminDashboard: React.FC = () => {
 
                 <div className="flex justify-end pt-8 border-t border-white/10">
                   <button type="submit" disabled={isSavingSettings} className="px-10 py-3 bg-neon-cyan text-gaming-dark font-heading rounded-xl hover:bg-white transition-all flex items-center gap-2">
-                    {isSavingSettings ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />} Simpan SEO & Share
+                    {isSavingSettings ? <Loader2 key="seo-loader" className="w-5 h-5 animate-spin" /> : <Save key="seo-save" className="w-5 h-5" />} Simpan SEO & Share
                   </button>
                 </div>
               </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {status && (
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.9 }}
+              className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100]"
+            >
+              <div className={`px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border backdrop-blur-xl ${
+                status.type === 'success' ? 'bg-green-500/20 border-green-500/50 text-green-400' : 
+                status.type === 'error' ? 'bg-red-500/20 border-red-500/50 text-red-400' : 
+                'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan'
+              }`}>
+                {status.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                <span className="font-heading text-sm">{status.message}</span>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
