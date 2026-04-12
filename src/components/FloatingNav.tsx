@@ -15,10 +15,16 @@ export const FloatingNav: React.FC = () => {
   ];
 
   useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY < 100) {
+        setActiveSection('hero');
+      }
+    };
+
     const options = {
       root: null,
-      rootMargin: '-50% 0px -50% 0px', // Trigger when section is in the middle of the viewport
-      threshold: 0
+      rootMargin: '-30% 0px -30% 0px',
+      threshold: [0, 0.1]
     };
 
     const observer = new IntersectionObserver((entries) => {
@@ -29,12 +35,19 @@ export const FloatingNav: React.FC = () => {
       });
     }, options);
 
-    navItems.forEach((item) => {
-      const element = document.getElementById(item.id);
-      if (element) observer.observe(element);
-    });
+    const timer = setTimeout(() => {
+      navItems.forEach((item) => {
+        const element = document.getElementById(item.id);
+        if (element) observer.observe(element);
+      });
+    }, 500);
 
-    return () => observer.disconnect();
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(timer);
+    };
   }, []);
 
   return (
