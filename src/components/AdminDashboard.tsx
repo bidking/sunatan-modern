@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Users, 
@@ -424,9 +425,10 @@ export const AdminDashboard: React.FC = () => {
           ))}
         </div>
 
-        <AnimatePresence mode="wait">
-          {activeTab === 'guests' && (
-            <motion.div key="guests" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="relative min-h-[400px]">
+          <AnimatePresence mode="wait">
+            {activeTab === 'guests' && (
+              <motion.div key="guests-tab" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-1">
                 <div className="glass p-6 rounded-2xl border-white/10 sticky top-10">
                   <h2 className="text-xl font-heading mb-6 flex items-center gap-2">
@@ -482,8 +484,8 @@ export const AdminDashboard: React.FC = () => {
             </motion.div>
           )}
 
-          {activeTab === 'rsvps' && (
-            <motion.div key="rsvps" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="glass rounded-2xl border-white/10 overflow-hidden">
+            {activeTab === 'rsvps' && (
+              <motion.div key="rsvps-tab" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="glass rounded-2xl border-white/10 overflow-hidden">
               <div className="p-6 border-b border-white/10"><h2 className="text-xl font-heading">Komentar & RSVP</h2></div>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[600px]">
@@ -516,8 +518,8 @@ export const AdminDashboard: React.FC = () => {
             </motion.div>
           )}
 
-          {activeTab === 'settings' && (
-            <motion.div key="settings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="glass p-8 rounded-2xl border-white/10">
+            {activeTab === 'settings' && (
+              <motion.div key="settings-tab" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="glass p-8 rounded-2xl border-white/10">
               <form onSubmit={saveSettings} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
@@ -605,8 +607,8 @@ export const AdminDashboard: React.FC = () => {
             </motion.div>
           )}
 
-          {activeTab === 'gifts' && (
-            <motion.div key="gifts" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="glass p-8 rounded-2xl border-white/10">
+            {activeTab === 'gifts' && (
+              <motion.div key="gifts-tab" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="glass p-8 rounded-2xl border-white/10">
               <form onSubmit={saveSettings} className="space-y-8">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-heading text-neon-yellow flex items-center gap-2"><Gift className="w-5 h-5" /> Digital Gift</h3>
@@ -649,8 +651,8 @@ export const AdminDashboard: React.FC = () => {
             </motion.div>
           )}
 
-          {activeTab === 'music' && (
-            <motion.div key="music" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="glass p-8 rounded-2xl border-white/10">
+            {activeTab === 'music' && (
+              <motion.div key="music-tab" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="glass p-8 rounded-2xl border-white/10">
               <form onSubmit={saveSettings} className="space-y-8">
                 <div className="flex items-center justify-between"><h3 className="text-xl font-heading text-neon-pink flex items-center gap-2"><Music className="w-5 h-5" /> Background Music</h3></div>
                 <div className="max-w-2xl mx-auto space-y-8">
@@ -690,8 +692,8 @@ export const AdminDashboard: React.FC = () => {
             </motion.div>
           )}
 
-          {activeTab === 'seo' && (
-            <motion.div key="seo" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="glass p-8 rounded-2xl border-white/10">
+            {activeTab === 'seo' && (
+              <motion.div key="seo-tab" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="glass p-8 rounded-2xl border-white/10">
               <form onSubmit={saveSettings} className="space-y-8">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-heading text-neon-cyan flex items-center gap-2"><Globe className="w-5 h-5" /> SEO & Social Share</h3>
@@ -735,27 +737,31 @@ export const AdminDashboard: React.FC = () => {
               </form>
             </motion.div>
           )}
-        </AnimatePresence>
+          </AnimatePresence>
+        </div>
 
-        <AnimatePresence>
-          {status && (
-            <motion.div
-              initial={{ opacity: 0, y: 50, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.9 }}
-              className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100]"
-            >
-              <div className={`px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border backdrop-blur-xl ${
-                status.type === 'success' ? 'bg-green-500/20 border-green-500/50 text-green-400' : 
-                status.type === 'error' ? 'bg-red-500/20 border-red-500/50 text-red-400' : 
-                'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan'
-              }`}>
-                {status.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
-                <span className="font-heading text-sm">{status.message}</span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {typeof document !== 'undefined' && createPortal(
+          <AnimatePresence>
+            {status && (
+              <motion.div
+                initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[9999]"
+              >
+                <div className={`px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border backdrop-blur-xl ${
+                  status.type === 'success' ? 'bg-green-500/20 border-green-500/50 text-green-400' : 
+                  status.type === 'error' ? 'bg-red-500/20 border-red-500/50 text-red-400' : 
+                  'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan'
+                }`}>
+                  {status.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                  <span className="font-heading text-sm">{status.message}</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
       </div>
     </div>
   );
