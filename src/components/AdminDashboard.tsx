@@ -131,6 +131,10 @@ export const AdminDashboard: React.FC = () => {
     ogImage: '',
     faviconUrl: ''
   });
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [newGalleryUrl, setNewGalleryUrl] = useState('');
+  const [isUploadingMusic, setIsUploadingMusic] = useState(false);
+  const [previewPlaying, setPreviewPlaying] = useState(false);
   const [status, setStatus] = useState<{message: string; type: 'success' | 'error' | 'info'} | null>(null);
   const previewAudioRef = React.useRef<HTMLAudioElement | null>(null);
 
