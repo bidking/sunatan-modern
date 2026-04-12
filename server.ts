@@ -61,39 +61,53 @@ async function startServer() {
   app.use("/galeri", express.static(uploadDir));
 
   // --- DYNAMIC SEO ENGINE ---
-  const injectSEO = async (html: string, guest: string) => {
+  const injectSEO = async (html: string, guest: string, reqPath: string = "/") => {
     try {
-      const response = await fetch(`https://firestore.googleapis.com/v1/projects/sunatan-azam/databases/(default)/documents/settings/global`);
-      const data = await response.json();
+      const projectId = "sunatan-azam";
+      const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/settings/global`;
+      const response = await fetch(firestoreUrl);
       
       let title = "Undangan Tasyakuran Khitan";
       let desc = "Kami mengundang Anda untuk merayakan momen spesial tasyakuran khitan putra kami.";
-      let image = "";
-      let favicon = "/vite.svg";
+      let image = "https://justbluenyellow.my.id/galeri/248471-1775842851801-10041416.jpg";
+      let favicon = "https://justbluenyellow.my.id/galeri/242929-1775842592916-116545060.gif";
 
-      if (data.fields) {
-        title = data.fields.ogTitle?.stringValue || title;
-        desc = data.fields.ogDescription?.stringValue || desc;
-        image = data.fields.ogImage?.stringValue || image;
-        favicon = data.fields.faviconUrl?.stringValue || favicon;
+      if (response.ok) {
+        const data = await response.json();
+        if (data.fields) {
+          title = data.fields.ogTitle?.stringValue || title;
+          desc = data.fields.ogDescription?.stringValue || desc;
+          image = data.fields.ogImage?.stringValue || image;
+          favicon = data.fields.faviconUrl?.stringValue || favicon;
+        }
       }
 
       // Add Guest Name to SEO
       if (guest) {
-        title = title.replace("{{name}}", guest);
-        if (!title.includes(guest)) title = `Undangan Spesial Untuk ${guest}`;
-        desc = desc.replace("{{name}}", guest);
+        if (title.includes("{{name}}")) {
+          title = title.replace(/{{name}}/g, guest);
+        } else {
+          title = `Undangan Khitan ${guest} - ${title}`;
+        }
+        if (desc.includes("{{name}}")) {
+          desc = desc.replace(/{{name}}/g, guest);
+        }
       }
 
+      const host = process.env.BASE_URL || "keyanu-azzam-azahab.vercel.app";
+      const fullUrl = `https://${host}${reqPath}`;
+
+      // Ensure Absolute URLs
+      if (image && image.startsWith('/')) image = `https://${host}${image}`;
+      if (favicon && favicon.startsWith('/')) favicon = `https://${host}${favicon}`;
+
       return html
-        .replace(/<title>.*?<\/title>/, `<title>${title}</title>`)
-        .replace(/property="og:title" content=".*?"/g, `property="og:title" content="${title}"`)
-        .replace(/property="og:description" content=".*?"/g, `property="og:description" content="${desc}"`)
-        .replace(/property="og:image" content=".*?"/g, `property="og:image" content="${image}"`)
-        .replace(/property="twitter:title" content=".*?"/g, `property="twitter:title" content="${title}"`)
-        .replace(/property="twitter:description" content=".*?"/g, `property="twitter:description" content="${desc}"`)
-        .replace(/property="twitter:image" content=".*?"/g, `property="twitter:image" content="${image}"`)
-        .replace(/id="favicon" rel="icon" type="image\/png" href=".*?"/, `id="favicon" rel="icon" type="image/png" href="${favicon}"`);
+        .split('{{TITLE}}').join(title)
+        .split('{{DESC}}').join(desc)
+        .split('{{IMAGE}}').join(image)
+        .split('{{FAVICON}}').join(favicon)
+        .split('{{URL}}').join(fullUrl)
+        .replace('</head>', '  <!-- Rendered by Local SEO Bot -->\n  </head>');
     } catch (e) { return html; }
   };
 
@@ -102,10 +116,10 @@ async function startServer() {
     app.use(vite.middlewares);
     app.use("*", async (req, res) => {
       try {
-        let template = fs.readFileSync(path.resolve(__dirname, "index.html"), "utf-8");
+        let template = fs.readFileSync(path.resolve(__dirname, "app.html"), "utf-8");
         template = await vite.transformIndexHtml(req.originalUrl, template);
         const guest = (req.query.to as string || "").split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-        res.status(200).set({ "Content-Type": "text/html" }).end(await injectSEO(template, guest));
+        res.status(200).set({ "Content-Type": "text/html" }).end(await injectSEO(template, guest, req.originalUrl));
       } catch (e) { res.status(500).end(e); }
     });
   } else {
@@ -113,9 +127,9 @@ async function startServer() {
     app.use(express.static(distPath, { index: false }));
     app.get("*", async (req, res) => {
       try {
-        const template = fs.readFileSync(path.join(distPath, "index.html"), "utf-8");
+        const template = fs.readFileSync(path.join(distPath, "app.html"), "utf-8");
         const guest = (req.query.to as string || "").split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-        res.status(200).set({ "Content-Type": "text/html" }).end(await injectSEO(template, guest));
+        res.status(200).set({ "Content-Type": "text/html" }).end(await injectSEO(template, guest, req.originalUrl));
       } catch (e) { res.status(500).end("Error"); }
     });
   }
